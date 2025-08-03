@@ -47,6 +47,8 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const [isTradeOpen, setIsTradeOpen] = useState(false);
   const [selectedTradePlayer, setSelectedTradePlayer] = useState<string>("");
   const [tradeAmount, setTradeAmount] = useState<number>(100);
+  const [selectedProperty, setSelectedProperty] = useState<string>("");
+  const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
 
   // Board position mapping - clockwise from GO
   const getBoardPosition = (spaceIndex: number) => {
@@ -101,7 +103,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
 
   const currentPlayerData = players[currentPlayer];
   const currentSpace = boardSpaces[currentPlayerData?.position];
-  const canTrade = turnPhase === 'actions' && currentSpace?.type === 'property';
+  const canTrade = turnPhase === 'actions'; // Can trade anytime during actions phase
   const otherPlayers = players.filter((_, index) => index !== currentPlayer);
   
   const canBuyProperty = currentSpace?.type === 'property' && 
@@ -141,22 +143,44 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   };
 
   const handleTrade = () => {
-    if (!selectedTradePlayer || !tradeAmount) return;
+    if (!selectedTradePlayer || !selectedProperty) return;
+    
+    const targetPlayer = players.find(p => p.id === selectedTradePlayer);
+    const propertyToBuy = boardSpaces.find(space => space.id === selectedProperty);
+    
+    if (!targetPlayer || !propertyToBuy || !propertyToBuy.price) return;
+    if (currentPlayerData.money < propertyToBuy.price) return;
     
     const updatedPlayers = players.map(player => {
       if (player.id === currentPlayerData.id) {
-        return { ...player, money: player.money + tradeAmount };
+        return { 
+          ...player, 
+          money: player.money - propertyToBuy.price!,
+          properties: [...player.properties, selectedProperty]
+        };
       }
       if (player.id === selectedTradePlayer) {
-        return { ...player, money: Math.max(0, player.money - tradeAmount) };
+        return { 
+          ...player, 
+          money: player.money + propertyToBuy.price!,
+          properties: player.properties.filter(p => p !== selectedProperty)
+        };
       }
       return player;
     });
     
+    const updatedSpaces = boardSpaces.map(space => {
+      if (space.id === selectedProperty) {
+        return { ...space, ownerId: currentPlayerData.id };
+      }
+      return space;
+    });
+    
     onUpdatePlayers(updatedPlayers);
+    onUpdateBoardSpaces(updatedSpaces);
     setIsTradeOpen(false);
     setSelectedTradePlayer("");
-    setTradeAmount(100);
+    setSelectedProperty("");
   };
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
@@ -438,14 +462,47 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                 )}
               </h3>
               <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  disabled={turnPhase !== 'actions'}
-                >
-                  View Properties
-                </Button>
+                <Dialog open={isPropertiesOpen} onOpenChange={setIsPropertiesOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      disabled={turnPhase !== 'actions'}
+                    >
+                      View Properties
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{currentPlayerData?.name}'s Properties</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      {currentPlayerData?.properties.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">No properties owned</p>
+                      ) : (
+                        currentPlayerData?.properties.map(propertyId => {
+                          const property = boardSpaces.find(space => space.id === propertyId);
+                          return property ? (
+                            <Card key={propertyId} className="p-3">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <h4 className="font-medium">{property.name}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    Value: ${property.price} | Rent: ${property.rent || 50}
+                                  </p>
+                                </div>
+                                {property.color && (
+                                  <div className={`w-4 h-4 rounded ${getPropertyColor(property)}`} />
+                                )}
+                              </div>
+                            </Card>
+                          ) : null;
+                        })
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 
                 <Dialog open={isTradeOpen} onOpenChange={setIsTradeOpen}>
                   <DialogTrigger asChild>
@@ -456,80 +513,74 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                       disabled={!canTrade}
                     >
                       <ArrowRightLeft className="w-4 h-4 mr-2" />
-                      Trade
-                      {!canTrade && turnPhase === 'actions' && (
-                        <span className="text-xs ml-1">(No property)</span>
-                      )}
+                      Buy Property
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Trade Money</DialogTitle>
+                      <DialogTitle>Buy Property from Player</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium mb-2 block">Trade with:</label>
+                        <label className="text-sm font-medium">Buy from:</label>
                         <Select value={selectedTradePlayer} onValueChange={setSelectedTradePlayer}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select player" />
+                            <SelectValue placeholder="Select a player" />
                           </SelectTrigger>
                           <SelectContent>
-                            {otherPlayers.map(player => (
+                            {otherPlayers.filter(p => p.properties.length > 0).map(player => (
                               <SelectItem key={player.id} value={player.id}>
-                                {player.name} (${player.money})
+                                {player.name} ({player.properties.length} properties)
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Amount:</label>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setTradeAmount(100)}
-                            className={tradeAmount === 100 ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            $100
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setTradeAmount(200)}
-                            className={tradeAmount === 200 ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            $200
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setTradeAmount(500)}
-                            className={tradeAmount === 500 ? "bg-primary text-primary-foreground" : ""}
-                          >
-                            $500
-                          </Button>
+                      {selectedTradePlayer && (
+                        <div>
+                          <label className="text-sm font-medium">Select property:</label>
+                          <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a property" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {otherPlayers
+                                .find(p => p.id === selectedTradePlayer)
+                                ?.properties.map(propertyId => {
+                                  const property = boardSpaces.find(space => space.id === propertyId);
+                                  return property ? (
+                                    <SelectItem key={propertyId} value={propertyId}>
+                                      {property.name} - ${property.price}
+                                    </SelectItem>
+                                  ) : null;
+                                })}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      </div>
+                      )}
                       
-                      <div className="flex gap-2 pt-4">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1"
-                          onClick={() => setIsTradeOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          variant="game" 
-                          className="flex-1"
-                          onClick={handleTrade}
-                          disabled={!selectedTradePlayer}
-                        >
-                          Trade ${tradeAmount}
-                        </Button>
-                      </div>
+                      {selectedProperty && (
+                        <div className="p-3 bg-muted rounded-lg">
+                          <p className="text-sm">
+                            You will pay: <span className="font-bold">
+                              ${boardSpaces.find(s => s.id === selectedProperty)?.price}
+                            </span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Your money: ${currentPlayerData?.money}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        onClick={handleTrade} 
+                        className="w-full" 
+                        disabled={!selectedTradePlayer || !selectedProperty || 
+                          (currentPlayerData?.money || 0) < (boardSpaces.find(s => s.id === selectedProperty)?.price || 0)}
+                      >
+                        Buy Property
+                      </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
