@@ -33,7 +33,7 @@ const Index = () => {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   
   // Default players
-  const [players] = useState<Player[]>([
+  const [players, setPlayers] = useState<Player[]>([
     { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500 },
     { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500 },
     { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500 },
@@ -95,12 +95,24 @@ const Index = () => {
     { id: '39', name: 'Boardwalk', type: 'property', color: 'blue', price: 400, rent: 50 },
   ]);
 
-  const handleRollDice = () => {
-    const diceRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
-    console.log(`Player ${currentPlayer + 1} rolled ${diceRoll}`);
+  const handleRollDice = (total: number, dice1: number, dice2: number) => {
+    console.log(`${players[currentPlayer].name} rolled ${dice1} + ${dice2} = ${total}`);
     
-    // Move to next player
-    setCurrentPlayer((currentPlayer + 1) % players.length);
+    // Move current player
+    const updatedPlayers = players.map(player => {
+      if (player.id === players[currentPlayer].id) {
+        const newPosition = (player.position + total) % 40;
+        return { ...player, position: newPosition };
+      }
+      return player;
+    });
+    
+    setPlayers(updatedPlayers);
+    
+    // Move to next player after a delay
+    setTimeout(() => {
+      setCurrentPlayer((currentPlayer + 1) % players.length);
+    }, 1000);
   };
 
   const handleSaveProperties = (newProperties: PropertyCard[]) => {
@@ -132,6 +144,7 @@ const Index = () => {
       currentPlayer={currentPlayer}
       onRollDice={handleRollDice}
       onOpenSettings={() => setCurrentView('settings')}
+      onUpdatePlayers={setPlayers}
     />
   );
 };

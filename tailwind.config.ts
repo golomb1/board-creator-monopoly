@@ -110,11 +110,37 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'dice-roll': {
+					'0%': { transform: 'rotateX(0deg) rotateY(0deg)' },
+					'25%': { transform: 'rotateX(90deg) rotateY(180deg)' },
+					'50%': { transform: 'rotateX(180deg) rotateY(360deg)' },
+					'75%': { transform: 'rotateX(270deg) rotateY(540deg)' },
+					'100%': { transform: 'rotateX(360deg) rotateY(720deg)' }
+				},
+				'bounce-in': {
+					'0%': { transform: 'scale(0.3)', opacity: '0' },
+					'50%': { transform: 'scale(1.05)' },
+					'70%': { transform: 'scale(0.9)' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'player-move': {
+					'0%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.2)' },
+					'100%': { transform: 'scale(1)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'dice-roll': 'dice-roll 1s ease-in-out',
+				'bounce-in': 'bounce-in 0.6s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'player-move': 'player-move 0.5s ease-in-out'
 			}
 		}
 	},
