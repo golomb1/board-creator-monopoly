@@ -315,32 +315,32 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
 
               {/* Center area with player info and dice roller */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pointer-events-auto">
+                <div className="flex gap-3 pointer-events-auto">
                   {/* Current Player Position Info */}
-                  <Card className="p-4 bg-gradient-property border-2 border-primary/20 min-w-[280px]">
-                    <div className="text-center space-y-3">
-                      <h3 className="text-lg font-bold text-primary">Current Position</h3>
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium">
-                          {currentPlayerData?.name} is at:
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-sm font-bold text-primary">Current Position</h3>
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium">
+                          {currentPlayerData?.name}
                         </div>
-                        <div className="text-lg font-bold">
-                          {currentSpace?.name || "Unknown Space"}
+                        <div className="text-sm font-bold leading-tight">
+                          {currentSpace?.name || "Unknown"}
                         </div>
                         {currentSpace?.type === 'property' && (
                           <>
                             {currentSpace.price && (
-                              <div className="text-sm text-primary font-medium">
-                                Price: ${currentSpace.price}
+                              <div className="text-xs text-primary font-medium">
+                                ${currentSpace.price}
                               </div>
                             )}
                             {propertyOwner ? (
-                              <div className="text-sm text-amber-600 font-medium">
-                                Owned by: {propertyOwner.name}
+                              <div className="text-xs text-amber-600 font-medium">
+                                Owner: {propertyOwner.name}
                               </div>
                             ) : (
-                              <div className="text-sm text-green-600 font-medium">
-                                Available for purchase
+                              <div className="text-xs text-green-600 font-medium">
+                                Available
                               </div>
                             )}
                             {canBuyProperty && (
@@ -348,9 +348,9 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                                 variant="game" 
                                 size="sm"
                                 onClick={handleBuyProperty}
-                                className="mt-2"
+                                className="text-xs py-1 px-2 h-6"
                               >
-                                Buy Property (${currentSpace.price})
+                                Buy ${currentSpace.price}
                               </Button>
                             )}
                           </>
@@ -360,25 +360,27 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                   </Card>
 
                   {/* Dice Roller */}
-                  <Card className="p-6 bg-gradient-property border-2 border-primary/20">
-                    <div className="text-center space-y-4">
-                      <h2 className="text-xl font-bold">Custom Monopoly</h2>
-                      <div className="text-sm text-muted-foreground">
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                    <div className="text-center space-y-2">
+                      <h2 className="text-sm font-bold">Monopoly</h2>
+                      <div className="text-xs text-muted-foreground">
                         {players[currentPlayer]?.name}'s Turn
                       </div>
                       <div className="text-xs text-primary/70 font-medium">
-                        Phase: {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
+                        {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
                       </div>
                       {lastRoll && (
-                        <div className="text-sm text-primary font-medium animate-fade-in">
-                          Last Roll: {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
+                        <div className="text-xs text-primary font-medium animate-fade-in">
+                          {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
                         </div>
                       )}
-                      <DiceRoller 
-                        onRoll={handleDiceRoll}
-                        disabled={isRolling || turnPhase !== 'roll'}
-                        isRolling={isRolling}
-                      />
+                      <div className="scale-75">
+                        <DiceRoller 
+                          onRoll={handleDiceRoll}
+                          disabled={isRolling || turnPhase !== 'roll'}
+                          isRolling={isRolling}
+                        />
+                      </div>
                     </div>
                   </Card>
                 </div>
