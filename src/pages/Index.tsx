@@ -108,11 +108,6 @@ const Index = () => {
     });
     
     setPlayers(updatedPlayers);
-    
-    // Move to next player after a delay
-    setTimeout(() => {
-      setCurrentPlayer((currentPlayer + 1) % players.length);
-    }, 1000);
   };
 
   const handleSaveProperties = (newProperties: PropertyCard[]) => {
@@ -123,6 +118,10 @@ const Index = () => {
   const handleSaveBoardSpaces = (newSpaces: BoardSpace[]) => {
     setBoardSpaces(newSpaces);
     console.log('Board spaces saved:', newSpaces.length);
+  };
+
+  const nextPlayer = () => {
+    setCurrentPlayer((prev) => (prev + 1) % players.length);
   };
 
   if (currentView === 'settings') {
@@ -145,6 +144,7 @@ const Index = () => {
       onRollDice={handleRollDice}
       onOpenSettings={() => setCurrentView('settings')}
       onUpdatePlayers={setPlayers}
+      onNextPlayer={nextPlayer}
     />
   );
 };

@@ -29,12 +29,16 @@ interface GameBoardProps {
   onRollDice: (total: number, dice1: number, dice2: number) => void;
   onOpenSettings: () => void;
   onUpdatePlayers: (players: Player[]) => void;
+  onNextPlayer: () => void;
 }
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSettings, onUpdatePlayers }: GameBoardProps) => {
+type TurnPhase = 'roll' | 'actions' | 'ended';
+
+const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
+  const [turnPhase, setTurnPhase] = useState<TurnPhase>('roll');
 
   // Board position mapping - clockwise from GO
   const getBoardPosition = (spaceIndex: number) => {
@@ -64,6 +68,8 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   };
 
   const handleDiceRoll = (total: number, dice1: number, dice2: number) => {
+    if (turnPhase !== 'roll') return;
+    
     setLastRoll({ total, dice1, dice2 });
     setIsRolling(true);
     
@@ -74,9 +80,20 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
     setTimeout(() => {
       setAnimatingPlayers([]);
       setIsRolling(false);
+      setTurnPhase('actions');
       onRollDice(total, dice1, dice2);
     }, 1000);
   };
+
+  const handleEndTurn = () => {
+    setTurnPhase('roll');
+    setLastRoll(null);
+    onNextPlayer();
+  };
+
+  const currentPlayerData = players[currentPlayer];
+  const currentSpace = boardSpaces[currentPlayerData?.position];
+  const canTrade = turnPhase === 'actions' && currentSpace?.type === 'property';
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
     const board = Array(11).fill(null).map(() => Array(11).fill(null));
@@ -229,6 +246,9 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                     <div className="text-sm text-muted-foreground">
                       {players[currentPlayer]?.name}'s Turn
                     </div>
+                    <div className="text-xs text-primary/70 font-medium">
+                      Phase: {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
+                    </div>
                     {lastRoll && (
                       <div className="text-sm text-primary font-medium animate-fade-in">
                         Last Roll: {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
@@ -236,7 +256,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                     )}
                     <DiceRoller 
                       onRoll={handleDiceRoll}
-                      disabled={isRolling}
+                      disabled={isRolling || turnPhase !== 'roll'}
                       isRolling={isRolling}
                     />
                   </div>
@@ -288,15 +308,39 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
 
             {/* Game Actions */}
             <Card variant="property" className="p-4">
-              <h3 className="font-semibold mb-3">Quick Actions</h3>
+              <h3 className="font-semibold mb-3">
+                Turn Actions
+                {turnPhase === 'roll' && (
+                  <Badge variant="secondary" className="ml-2 text-xs">Roll dice first</Badge>
+                )}
+              </h3>
               <div className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  disabled={turnPhase !== 'actions'}
+                >
                   View Properties
                 </Button>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  disabled={!canTrade}
+                >
                   Trade
+                  {!canTrade && turnPhase === 'actions' && (
+                    <span className="text-xs ml-1">(No property)</span>
+                  )}
                 </Button>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="game" 
+                  size="sm" 
+                  className="w-full"
+                  disabled={turnPhase === 'roll'}
+                  onClick={handleEndTurn}
+                >
                   End Turn
                 </Button>
               </div>
