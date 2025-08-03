@@ -625,12 +625,12 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                       disabled={turnPhase !== 'actions'}
                     >
                       Manage Requests
-                      {buyRequests.filter(r => 
+                      {(buyRequests || []).filter(r => 
                         (r.fromPlayerId === currentPlayerData.id || r.toPlayerId === currentPlayerData.id) && 
                         r.status === 'pending'
                       ).length > 0 && (
                         <Badge variant="destructive" className="ml-2">
-                          {buyRequests.filter(r => 
+                          {(buyRequests || []).filter(r => 
                             (r.fromPlayerId === currentPlayerData.id || r.toPlayerId === currentPlayerData.id) && 
                             r.status === 'pending'
                           ).length}
@@ -646,10 +646,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                       {/* Received Requests */}
                       <div>
                         <h4 className="font-medium text-sm mb-2">Requests Received:</h4>
-                        {buyRequests.filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
+                        {(buyRequests || []).filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
                           <p className="text-sm text-muted-foreground">No pending requests</p>
                         ) : (
-                          buyRequests.filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
+                          (buyRequests || []).filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
                             const property = boardSpaces.find(s => s.id === request.propertyId);
                             const fromPlayer = players.find(p => p.id === request.fromPlayerId);
                             return (
@@ -686,10 +686,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                       {/* Sent Requests */}
                       <div>
                         <h4 className="font-medium text-sm mb-2">Requests Sent:</h4>
-                        {buyRequests.filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
+                        {(buyRequests || []).filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
                           <p className="text-sm text-muted-foreground">No pending requests</p>
                         ) : (
-                          buyRequests.filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
+                          (buyRequests || []).filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
                             const property = boardSpaces.find(s => s.id === request.propertyId);
                             const toPlayer = players.find(p => p.id === request.toPlayerId);
                             return (
