@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,6 +53,16 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				property: {
+					brown: 'hsl(var(--property-brown))',
+					'light-blue': 'hsl(var(--property-light-blue))',
+					pink: 'hsl(var(--property-pink))',
+					orange: 'hsl(var(--property-orange))',
+					red: 'hsl(var(--property-red))',
+					yellow: 'hsl(var(--property-yellow))',
+					green: 'hsl(var(--property-green))',
+					blue: 'hsl(var(--property-blue))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -67,6 +78,21 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			backgroundImage: {
+				'gradient-board': 'var(--gradient-board)',
+				'gradient-property': 'var(--gradient-property)',
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-secondary': 'var(--gradient-secondary)'
+			},
+			boxShadow: {
+				'card': 'var(--shadow-card)',
+				'board': 'var(--shadow-board)',
+				'glow': 'var(--shadow-glow)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)',
+				'bounce': 'var(--transition-bounce)'
 			},
 			keyframes: {
 				'accordion-down': {

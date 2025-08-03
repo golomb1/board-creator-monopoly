@@ -9,21 +9,24 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-gradient-primary text-primary-foreground shadow hover:shadow-glow hover:scale-[1.02] transition-smooth",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background hover:bg-muted hover:shadow-card transition-smooth",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-gradient-secondary text-secondary-foreground shadow hover:shadow-card hover:scale-[1.02] transition-smooth",
+        ghost: "hover:bg-muted hover:text-accent-foreground transition-smooth",
         link: "text-primary underline-offset-4 hover:underline",
+        game: "bg-gradient-property border-2 border-primary/20 text-card-foreground shadow-card hover:shadow-glow hover:scale-[1.05] hover:border-primary/40 transition-bounce",
+        property: "border-2 text-card-foreground shadow-card hover:shadow-glow hover:scale-[1.02] transition-smooth"
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        xl: "h-12 rounded-lg px-10 text-base",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
