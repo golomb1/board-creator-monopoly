@@ -8,6 +8,7 @@ interface Player {
   color: string;
   position: number;
   money: number;
+  properties: string[]; // Array of property IDs owned by player
 }
 
 interface PropertyCard {
@@ -26,6 +27,7 @@ interface BoardSpace {
   color?: string;
   price?: number;
   rent?: number;
+  ownerId?: string; // ID of player who owns this property
 }
 
 const Index = () => {
@@ -34,10 +36,10 @@ const Index = () => {
   
   // Default players
   const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500 },
-    { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500 },
-    { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500 },
-    { id: '4', name: 'Player 4', color: '#f39c12', position: 0, money: 1500 },
+    { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500, properties: [] },
+    { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500, properties: [] },
+    { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500, properties: [] },
+    { id: '4', name: 'Player 4', color: '#f39c12', position: 0, money: 1500, properties: [] },
   ]);
 
   // Default properties
@@ -124,6 +126,10 @@ const Index = () => {
     setCurrentPlayer((prev) => (prev + 1) % players.length);
   };
 
+  const handleUpdateBoardSpaces = (newSpaces: BoardSpace[]) => {
+    setBoardSpaces(newSpaces);
+  };
+
   if (currentView === 'settings') {
     return (
       <GameSettings
@@ -145,6 +151,7 @@ const Index = () => {
       onOpenSettings={() => setCurrentView('settings')}
       onUpdatePlayers={setPlayers}
       onNextPlayer={nextPlayer}
+      onUpdateBoardSpaces={handleUpdateBoardSpaces}
     />
   );
 };

@@ -13,6 +13,7 @@ interface Player {
   color: string;
   position: number;
   money: number;
+  properties: string[]; // Array of property IDs owned by player
 }
 
 interface BoardSpace {
@@ -22,6 +23,7 @@ interface BoardSpace {
   color?: string;
   price?: number;
   rent?: number;
+  ownerId?: string; // ID of player who owns this property
 }
 
 interface GameBoardProps {
@@ -32,11 +34,12 @@ interface GameBoardProps {
   onOpenSettings: () => void;
   onUpdatePlayers: (players: Player[]) => void;
   onNextPlayer: () => void;
+  onUpdateBoardSpaces: (spaces: BoardSpace[]) => void;
 }
 
 type TurnPhase = 'roll' | 'actions' | 'ended';
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer }: GameBoardProps) => {
+const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
@@ -100,6 +103,42 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const currentSpace = boardSpaces[currentPlayerData?.position];
   const canTrade = turnPhase === 'actions' && currentSpace?.type === 'property';
   const otherPlayers = players.filter((_, index) => index !== currentPlayer);
+  
+  const canBuyProperty = currentSpace?.type === 'property' && 
+                        !currentSpace?.ownerId && 
+                        currentSpace?.price && 
+                        currentPlayerData?.money >= currentSpace.price &&
+                        turnPhase === 'actions';
+
+  const propertyOwner = currentSpace?.ownerId ? 
+    players.find(p => p.id === currentSpace.ownerId) : null;
+
+  const handleBuyProperty = () => {
+    if (!canBuyProperty || !currentSpace?.price) return;
+    
+    // Update player money and properties
+    const updatedPlayers = players.map(player => {
+      if (player.id === currentPlayerData.id) {
+        return { 
+          ...player, 
+          money: player.money - currentSpace.price!,
+          properties: [...player.properties, currentSpace.id]
+        };
+      }
+      return player;
+    });
+    
+    // Update board space ownership
+    const updatedSpaces = boardSpaces.map(space => {
+      if (space.id === currentSpace.id) {
+        return { ...space, ownerId: currentPlayerData.id };
+      }
+      return space;
+    });
+    
+    onUpdatePlayers(updatedPlayers);
+    onUpdateBoardSpaces(updatedSpaces);
+  };
 
   const handleTrade = () => {
     if (!selectedTradePlayer || !tradeAmount) return;
@@ -263,29 +302,75 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                 )}
               </div>
 
-              {/* Center area with dice roller */}
+              {/* Center area with player info and dice roller */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <Card className="pointer-events-auto p-6 bg-gradient-property border-2 border-primary/20">
-                  <div className="text-center space-y-4">
-                    <h2 className="text-xl font-bold">Custom Monopoly</h2>
-                    <div className="text-sm text-muted-foreground">
-                      {players[currentPlayer]?.name}'s Turn
-                    </div>
-                    <div className="text-xs text-primary/70 font-medium">
-                      Phase: {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
-                    </div>
-                    {lastRoll && (
-                      <div className="text-sm text-primary font-medium animate-fade-in">
-                        Last Roll: {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pointer-events-auto">
+                  {/* Current Player Position Info */}
+                  <Card className="p-4 bg-gradient-property border-2 border-primary/20 min-w-[280px]">
+                    <div className="text-center space-y-3">
+                      <h3 className="text-lg font-bold text-primary">Current Position</h3>
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">
+                          {currentPlayerData?.name} is at:
+                        </div>
+                        <div className="text-lg font-bold">
+                          {currentSpace?.name || "Unknown Space"}
+                        </div>
+                        {currentSpace?.type === 'property' && (
+                          <>
+                            {currentSpace.price && (
+                              <div className="text-sm text-primary font-medium">
+                                Price: ${currentSpace.price}
+                              </div>
+                            )}
+                            {propertyOwner ? (
+                              <div className="text-sm text-amber-600 font-medium">
+                                Owned by: {propertyOwner.name}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-green-600 font-medium">
+                                Available for purchase
+                              </div>
+                            )}
+                            {canBuyProperty && (
+                              <Button 
+                                variant="game" 
+                                size="sm"
+                                onClick={handleBuyProperty}
+                                className="mt-2"
+                              >
+                                Buy Property (${currentSpace.price})
+                              </Button>
+                            )}
+                          </>
+                        )}
                       </div>
-                    )}
-                    <DiceRoller 
-                      onRoll={handleDiceRoll}
-                      disabled={isRolling || turnPhase !== 'roll'}
-                      isRolling={isRolling}
-                    />
-                  </div>
-                </Card>
+                    </div>
+                  </Card>
+
+                  {/* Dice Roller */}
+                  <Card className="p-6 bg-gradient-property border-2 border-primary/20">
+                    <div className="text-center space-y-4">
+                      <h2 className="text-xl font-bold">Custom Monopoly</h2>
+                      <div className="text-sm text-muted-foreground">
+                        {players[currentPlayer]?.name}'s Turn
+                      </div>
+                      <div className="text-xs text-primary/70 font-medium">
+                        Phase: {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
+                      </div>
+                      {lastRoll && (
+                        <div className="text-sm text-primary font-medium animate-fade-in">
+                          Last Roll: {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
+                        </div>
+                      )}
+                      <DiceRoller 
+                        onRoll={handleDiceRoll}
+                        disabled={isRolling || turnPhase !== 'roll'}
+                        isRolling={isRolling}
+                      />
+                    </div>
+                  </Card>
+                </div>
               </div>
             </Card>
           </div>
