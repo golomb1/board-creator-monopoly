@@ -228,6 +228,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
     const isCorner = (row === 0 || row === 10) && (col === 0 || col === 10);
     const spaceId = parseInt(space.id);
     const playersOnSpace = players.filter(p => p.position === spaceId);
+    
+    // Find the owner of this property
+    const propertyOwner = space.ownerId ? players.find(p => p.id === space.ownerId) : null;
+    const ownerBorderStyle = propertyOwner ? { borderColor: propertyOwner.color, borderWidth: '3px' } : {};
 
     return (
       <Card
@@ -237,8 +241,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
           aspect-square flex flex-col justify-between p-1 text-xs relative
           ${isCorner ? 'w-20 h-20' : 'w-16 h-16'}
           ${space.type === 'corner' ? 'bg-gradient-secondary' : ''}
+          ${propertyOwner ? 'border-4' : 'border-2'}
           hover:scale-105 transition-smooth
         `}
+        style={propertyOwner ? ownerBorderStyle : {}}
       >
         {space.type === 'property' && space.color && (
           <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
@@ -248,6 +254,11 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
           <div className="font-medium leading-tight">{space.name}</div>
           {space.price && (
             <div className="text-primary font-bold">${space.price}</div>
+          )}
+          {propertyOwner && (
+            <div className="text-xs font-medium mt-1" style={{ color: propertyOwner.color }}>
+              Owned by {propertyOwner.name}
+            </div>
           )}
         </div>
 
