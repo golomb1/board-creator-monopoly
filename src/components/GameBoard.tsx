@@ -75,7 +75,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
       setAnimatingPlayers([]);
       setIsRolling(false);
       onRollDice(total, dice1, dice2);
-    }, 500);
+    }, 1000);
   };
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
@@ -171,14 +171,19 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
         </div>
 
         {playersOnSpace.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex gap-0.5 flex-wrap justify-center">
+          <div className="absolute bottom-1 left-1 right-1 flex gap-1 flex-wrap justify-center">
             {playersOnSpace.map(player => (
               <div
                 key={player.id}
                 className={`
-                  w-3 h-3 rounded-full border-2 border-white shadow-sm
-                  ${animatingPlayers.includes(player.id) ? 'animate-player-move' : ''}
-                  transition-all duration-300
+                  w-6 h-6 rounded-full border-3 border-white shadow-lg relative
+                  ${animatingPlayers.includes(player.id) ? 'animate-player-move scale-110' : ''}
+                  transition-all duration-500 ease-in-out transform
+                  hover:scale-125 hover:shadow-xl cursor-pointer
+                  before:content-[''] before:absolute before:-inset-1 
+                  before:rounded-full before:bg-white/30 before:scale-0
+                  ${animatingPlayers.includes(player.id) ? 'before:scale-100 before:animate-ping' : ''}
+                  before:transition-transform before:duration-300
                 `}
                 style={{ backgroundColor: player.color }}
                 title={player.name}
