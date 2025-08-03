@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Settings } from "lucide-react";
+import { Users, Settings, ArrowRightLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DiceRoller from "./DiceRoller";
 
 interface Player {
@@ -39,6 +41,9 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
   const [turnPhase, setTurnPhase] = useState<TurnPhase>('roll');
+  const [isTradeOpen, setIsTradeOpen] = useState(false);
+  const [selectedTradePlayer, setSelectedTradePlayer] = useState<string>("");
+  const [tradeAmount, setTradeAmount] = useState<number>(100);
 
   // Board position mapping - clockwise from GO
   const getBoardPosition = (spaceIndex: number) => {
@@ -94,6 +99,26 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const currentPlayerData = players[currentPlayer];
   const currentSpace = boardSpaces[currentPlayerData?.position];
   const canTrade = turnPhase === 'actions' && currentSpace?.type === 'property';
+  const otherPlayers = players.filter((_, index) => index !== currentPlayer);
+
+  const handleTrade = () => {
+    if (!selectedTradePlayer || !tradeAmount) return;
+    
+    const updatedPlayers = players.map(player => {
+      if (player.id === currentPlayerData.id) {
+        return { ...player, money: player.money + tradeAmount };
+      }
+      if (player.id === selectedTradePlayer) {
+        return { ...player, money: Math.max(0, player.money - tradeAmount) };
+      }
+      return player;
+    });
+    
+    onUpdatePlayers(updatedPlayers);
+    setIsTradeOpen(false);
+    setSelectedTradePlayer("");
+    setTradeAmount(100);
+  };
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
     const board = Array(11).fill(null).map(() => Array(11).fill(null));
@@ -323,17 +348,93 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                 >
                   View Properties
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  disabled={!canTrade}
-                >
-                  Trade
-                  {!canTrade && turnPhase === 'actions' && (
-                    <span className="text-xs ml-1">(No property)</span>
-                  )}
-                </Button>
+                
+                <Dialog open={isTradeOpen} onOpenChange={setIsTradeOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      disabled={!canTrade}
+                    >
+                      <ArrowRightLeft className="w-4 h-4 mr-2" />
+                      Trade
+                      {!canTrade && turnPhase === 'actions' && (
+                        <span className="text-xs ml-1">(No property)</span>
+                      )}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Trade Money</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Trade with:</label>
+                        <Select value={selectedTradePlayer} onValueChange={setSelectedTradePlayer}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select player" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {otherPlayers.map(player => (
+                              <SelectItem key={player.id} value={player.id}>
+                                {player.name} (${player.money})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Amount:</label>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setTradeAmount(100)}
+                            className={tradeAmount === 100 ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            $100
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setTradeAmount(200)}
+                            className={tradeAmount === 200 ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            $200
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setTradeAmount(500)}
+                            className={tradeAmount === 500 ? "bg-primary text-primary-foreground" : ""}
+                          >
+                            $500
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 pt-4">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1"
+                          onClick={() => setIsTradeOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="game" 
+                          className="flex-1"
+                          onClick={handleTrade}
+                          disabled={!selectedTradePlayer}
+                        >
+                          Trade ${tradeAmount}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <Button 
                   variant="game" 
                   size="sm" 
