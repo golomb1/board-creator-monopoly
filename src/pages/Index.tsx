@@ -8,7 +8,18 @@ interface Player {
   color: string;
   position: number;
   money: number;
+  lockedMoney: number; // Money locked in pending buy requests
   properties: string[]; // Array of property IDs owned by player
+}
+
+interface BuyRequest {
+  id: string;
+  fromPlayerId: string;
+  toPlayerId: string;
+  propertyId: string;
+  amount: number;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: number;
 }
 
 interface PropertyCard {
@@ -33,13 +44,14 @@ interface BoardSpace {
 const Index = () => {
   const [currentView, setCurrentView] = useState<'game' | 'settings'>('game');
   const [currentPlayer, setCurrentPlayer] = useState(0);
+  const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
   
   // Default players
   const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500, properties: [] },
-    { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500, properties: [] },
-    { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500, properties: [] },
-    { id: '4', name: 'Player 4', color: '#f39c12', position: 0, money: 1500, properties: [] },
+    { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500, lockedMoney: 0, properties: [] },
+    { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500, lockedMoney: 0, properties: [] },
+    { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500, lockedMoney: 0, properties: [] },
+    { id: '4', name: 'Player 4', color: '#f39c12', position: 0, money: 1500, lockedMoney: 0, properties: [] },
   ]);
 
   // Default properties
@@ -147,11 +159,13 @@ const Index = () => {
       players={players}
       boardSpaces={boardSpaces}
       currentPlayer={currentPlayer}
+      buyRequests={buyRequests}
       onRollDice={handleRollDice}
       onOpenSettings={() => setCurrentView('settings')}
       onUpdatePlayers={setPlayers}
       onNextPlayer={nextPlayer}
       onUpdateBoardSpaces={handleUpdateBoardSpaces}
+      onUpdateBuyRequests={setBuyRequests}
     />
   );
 };

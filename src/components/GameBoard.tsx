@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Settings, ArrowRightLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import DiceRoller from "./DiceRoller";
 
 interface Player {
@@ -13,7 +14,18 @@ interface Player {
   color: string;
   position: number;
   money: number;
+  lockedMoney: number;
   properties: string[]; // Array of property IDs owned by player
+}
+
+interface BuyRequest {
+  id: string;
+  fromPlayerId: string;
+  toPlayerId: string;
+  propertyId: string;
+  amount: number;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: number;
 }
 
 interface BoardSpace {
@@ -30,16 +42,18 @@ interface GameBoardProps {
   players: Player[];
   boardSpaces: BoardSpace[];
   currentPlayer: number;
+  buyRequests: BuyRequest[];
   onRollDice: (total: number, dice1: number, dice2: number) => void;
   onOpenSettings: () => void;
   onUpdatePlayers: (players: Player[]) => void;
   onNextPlayer: () => void;
   onUpdateBoardSpaces: (spaces: BoardSpace[]) => void;
+  onUpdateBuyRequests: (requests: BuyRequest[]) => void;
 }
 
 type TurnPhase = 'roll' | 'actions' | 'ended';
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces }: GameBoardProps) => {
+const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
@@ -49,6 +63,8 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const [tradeAmount, setTradeAmount] = useState<number>(100);
   const [selectedProperty, setSelectedProperty] = useState<string>("");
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
+  const [isRequestsOpen, setIsRequestsOpen] = useState(false);
+  const { toast } = useToast();
 
   // Board position mapping - clockwise from GO
   const getBoardPosition = (spaceIndex: number) => {
@@ -115,7 +131,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
   const propertyOwner = currentSpace?.ownerId ? 
     players.find(p => p.id === currentSpace.ownerId) : null;
 
-  const handleBuyProperty = () => {
+  const handleBuyCurrentProperty = () => {
     if (!canBuyProperty || !currentSpace?.price) return;
     
     // Update player money and properties
@@ -140,47 +156,140 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
     
     onUpdatePlayers(updatedPlayers);
     onUpdateBoardSpaces(updatedSpaces);
+    toast({
+      title: "Property Purchased!",
+      description: `${currentPlayerData.name} bought ${currentSpace.name} for $${currentSpace.price}`,
+    });
   };
 
-  const handleTrade = () => {
+  const handleSendBuyRequest = () => {
     if (!selectedTradePlayer || !selectedProperty) return;
     
-    const targetPlayer = players.find(p => p.id === selectedTradePlayer);
-    const propertyToBuy = boardSpaces.find(space => space.id === selectedProperty);
+    const property = boardSpaces.find(space => space.id === selectedProperty);
+    if (!property?.price) return;
+    if (currentPlayerData.money - currentPlayerData.lockedMoney < property.price) return;
     
-    if (!targetPlayer || !propertyToBuy || !propertyToBuy.price) return;
-    if (currentPlayerData.money < propertyToBuy.price) return;
+    const newRequest: BuyRequest = {
+      id: Date.now().toString(),
+      fromPlayerId: currentPlayerData.id,
+      toPlayerId: selectedTradePlayer,
+      propertyId: selectedProperty,
+      amount: property.price,
+      status: 'pending',
+      createdAt: Date.now()
+    };
     
+    // Lock the money for this request
     const updatedPlayers = players.map(player => {
       if (player.id === currentPlayerData.id) {
-        return { 
-          ...player, 
-          money: player.money - propertyToBuy.price!,
-          properties: [...player.properties, selectedProperty]
-        };
-      }
-      if (player.id === selectedTradePlayer) {
-        return { 
-          ...player, 
-          money: player.money + propertyToBuy.price!,
-          properties: player.properties.filter(p => p !== selectedProperty)
-        };
+        return { ...player, lockedMoney: player.lockedMoney + property.price! };
       }
       return player;
     });
     
-    const updatedSpaces = boardSpaces.map(space => {
-      if (space.id === selectedProperty) {
-        return { ...space, ownerId: currentPlayerData.id };
-      }
-      return space;
-    });
-    
     onUpdatePlayers(updatedPlayers);
-    onUpdateBoardSpaces(updatedSpaces);
+    onUpdateBuyRequests([...buyRequests, newRequest]);
     setIsTradeOpen(false);
     setSelectedTradePlayer("");
     setSelectedProperty("");
+    
+    toast({
+      title: "Buy Request Sent",
+      description: `Sent buy request for ${property.name} to ${players.find(p => p.id === selectedTradePlayer)?.name}`,
+    });
+  };
+
+  const handleBuyRequestResponse = (requestId: string, accept: boolean) => {
+    const request = buyRequests.find(r => r.id === requestId);
+    if (!request) return;
+    
+    const property = boardSpaces.find(space => space.id === request.propertyId);
+    if (!property) return;
+    
+    if (accept) {
+      // Complete the trade
+      const updatedPlayers = players.map(player => {
+        if (player.id === request.fromPlayerId) {
+          return {
+            ...player,
+            lockedMoney: player.lockedMoney - request.amount,
+            properties: [...player.properties, request.propertyId]
+          };
+        }
+        if (player.id === request.toPlayerId) {
+          return {
+            ...player,
+            money: player.money + request.amount,
+            properties: player.properties.filter(p => p !== request.propertyId)
+          };
+        }
+        return player;
+      });
+      
+      const updatedSpaces = boardSpaces.map(space => {
+        if (space.id === request.propertyId) {
+          return { ...space, ownerId: request.fromPlayerId };
+        }
+        return space;
+      });
+      
+      onUpdatePlayers(updatedPlayers);
+      onUpdateBoardSpaces(updatedSpaces);
+      
+      toast({
+        title: "Trade Completed!",
+        description: `${property.name} sold for $${request.amount}`,
+      });
+    } else {
+      // Reject: unlock the money
+      const updatedPlayers = players.map(player => {
+        if (player.id === request.fromPlayerId) {
+          return { ...player, lockedMoney: player.lockedMoney - request.amount };
+        }
+        return player;
+      });
+      
+      onUpdatePlayers(updatedPlayers);
+      
+      toast({
+        title: "Request Declined",
+        description: `Buy request for ${property.name} was declined`,
+      });
+    }
+    
+    // Update request status
+    const status: BuyRequest['status'] = accept ? 'accepted' : 'declined';
+    const updatedRequests = buyRequests.map(r => 
+      r.id === requestId ? { ...r, status } : r
+    );
+    onUpdateBuyRequests(updatedRequests);
+  };
+
+  const handleCancelRequest = (requestId: string) => {
+    const request = buyRequests.find(r => r.id === requestId);
+    if (!request) return;
+    
+    // Unlock the money
+    const updatedPlayers = players.map(player => {
+      if (player.id === request.fromPlayerId) {
+        return { ...player, lockedMoney: player.lockedMoney - request.amount };
+      }
+      return player;
+    });
+    
+    onUpdatePlayers(updatedPlayers);
+    
+    // Update request status
+    const status: BuyRequest['status'] = 'cancelled';
+    const updatedRequests = buyRequests.map(r => 
+      r.id === requestId ? { ...r, status } : r
+    );
+    onUpdateBuyRequests(updatedRequests);
+    
+    toast({
+      title: "Request Cancelled",
+      description: "Buy request cancelled and money unlocked",
+    });
   };
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
@@ -371,7 +480,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                               <Button 
                                 variant="game" 
                                 size="sm"
-                                onClick={handleBuyProperty}
+                                onClick={handleBuyCurrentProperty}
                                 className="text-xs py-1 px-2 h-6"
                               >
                                 Buy ${currentSpace.price}
@@ -443,7 +552,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Money: <span className="font-bold text-primary">${player.money}</span>
+                      Money: <span className="font-bold text-primary">${player.money - player.lockedMoney}</span>
+                      {player.lockedMoney > 0 && (
+                        <span className="text-orange-500 ml-1">(${player.lockedMoney} locked)</span>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       Position: <span className="font-medium">{boardSpaces[player.position]?.name || `Space ${player.position}`}</span>
@@ -504,6 +616,106 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                   </DialogContent>
                 </Dialog>
                 
+                <Dialog open={isRequestsOpen} onOpenChange={setIsRequestsOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      disabled={turnPhase !== 'actions'}
+                    >
+                      Manage Requests
+                      {buyRequests.filter(r => 
+                        (r.fromPlayerId === currentPlayerData.id || r.toPlayerId === currentPlayerData.id) && 
+                        r.status === 'pending'
+                      ).length > 0 && (
+                        <Badge variant="destructive" className="ml-2">
+                          {buyRequests.filter(r => 
+                            (r.fromPlayerId === currentPlayerData.id || r.toPlayerId === currentPlayerData.id) && 
+                            r.status === 'pending'
+                          ).length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Buy Requests</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {/* Received Requests */}
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Requests Received:</h4>
+                        {buyRequests.filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No pending requests</p>
+                        ) : (
+                          buyRequests.filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
+                            const property = boardSpaces.find(s => s.id === request.propertyId);
+                            const fromPlayer = players.find(p => p.id === request.fromPlayerId);
+                            return (
+                              <Card key={request.id} className="p-3 mb-2">
+                                <div className="space-y-2">
+                                  <div className="text-sm">
+                                    <strong>{fromPlayer?.name}</strong> wants to buy <strong>{property?.name}</strong> for <strong>${request.amount}</strong>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm" 
+                                      variant="default"
+                                      onClick={() => handleBuyRequestResponse(request.id, true)}
+                                      className="flex-1"
+                                    >
+                                      Accept
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive"
+                                      onClick={() => handleBuyRequestResponse(request.id, false)}
+                                      className="flex-1"
+                                    >
+                                      Decline
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })
+                        )}
+                      </div>
+                      
+                      {/* Sent Requests */}
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Requests Sent:</h4>
+                        {buyRequests.filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No pending requests</p>
+                        ) : (
+                          buyRequests.filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
+                            const property = boardSpaces.find(s => s.id === request.propertyId);
+                            const toPlayer = players.find(p => p.id === request.toPlayerId);
+                            return (
+                              <Card key={request.id} className="p-3 mb-2">
+                                <div className="space-y-2">
+                                  <div className="text-sm">
+                                    Buying <strong>{property?.name}</strong> from <strong>{toPlayer?.name}</strong> for <strong>${request.amount}</strong>
+                                  </div>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => handleCancelRequest(request.id)}
+                                    className="w-full"
+                                  >
+                                    Cancel Request
+                                  </Button>
+                                </div>
+                              </Card>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
                 <Dialog open={isTradeOpen} onOpenChange={setIsTradeOpen}>
                   <DialogTrigger asChild>
                     <Button 
@@ -513,7 +725,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                       disabled={!canTrade}
                     >
                       <ArrowRightLeft className="w-4 h-4 mr-2" />
-                      Buy Property
+                      Send Buy Request
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -568,18 +780,18 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, onRollDice, onOpenSett
                             </span>
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Your money: ${currentPlayerData?.money}
+                            Available money: ${currentPlayerData?.money - currentPlayerData?.lockedMoney}
                           </p>
                         </div>
                       )}
                       
                       <Button 
-                        onClick={handleTrade} 
+                        onClick={handleSendBuyRequest} 
                         className="w-full" 
                         disabled={!selectedTradePlayer || !selectedProperty || 
-                          (currentPlayerData?.money || 0) < (boardSpaces.find(s => s.id === selectedProperty)?.price || 0)}
+                          (currentPlayerData?.money - currentPlayerData?.lockedMoney || 0) < (boardSpaces.find(s => s.id === selectedProperty)?.price || 0)}
                       >
-                        Buy Property
+                        Send Buy Request
                       </Button>
                     </div>
                   </DialogContent>
