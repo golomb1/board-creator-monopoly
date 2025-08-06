@@ -452,7 +452,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Game Board */}
           <div className="lg:col-span-3">
-            <Card variant="board" className="p-6">
+            <Card variant="board" className="p-6 relative">
               <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto items-center justify-items-center">
                 {board.map((row, rowIndex) =>
                   row.map((space, colIndex) =>
@@ -461,8 +461,8 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 )}
               </div>
 
-              {/* Center area with player info and dice roller */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+              {/* Center area with player info and dice roller - positioned relative to board */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="flex gap-3 pointer-events-auto justify-center items-center">
                   {/* Current Player Position Info */}
                   <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
