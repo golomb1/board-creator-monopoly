@@ -438,94 +438,85 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
           {/* Game Board */}
           <div className="lg:col-span-3">
             <Card variant="board" className="p-6">
-              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto relative">
+              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto">
                 {board.map((row, rowIndex) =>
-                  row.map((space, colIndex) => {
-                    // Check if this is a center position for cards
-                    if (rowIndex >= 4 && rowIndex <= 6 && colIndex >= 4 && colIndex <= 6) {
-                      // Center cards area
-                      if (rowIndex === 5 && colIndex === 4) {
-                        // Current Player Position Info
-                        return (
-                          <Card key={`center-player-${rowIndex}-${colIndex}`} className="col-span-2 p-3 bg-gradient-property border-2 border-primary/20">
-                            <div className="text-center space-y-2">
-                              <h3 className="text-sm font-bold text-primary">Current Position</h3>
-                              <div className="space-y-1">
-                                <div className="text-xs font-medium">
-                                  {currentPlayerData?.name}
-                                </div>
-                                <div className="text-sm font-bold leading-tight">
-                                  {currentSpace?.name || "Unknown"}
-                                </div>
-                                {currentSpace?.type === 'property' && (
-                                  <>
-                                    {currentSpace.price && (
-                                      <div className="text-xs text-primary font-medium">
-                                        ${currentSpace.price}
-                                      </div>
-                                    )}
-                                    {propertyOwner ? (
-                                      <div className="text-xs text-amber-600 font-medium">
-                                        Owner: {propertyOwner.name}
-                                      </div>
-                                    ) : (
-                                      <div className="text-xs text-green-600 font-medium">
-                                        Available
-                                      </div>
-                                    )}
-                                    {canBuyProperty && (
-                                      <Button 
-                                        variant="game" 
-                                        size="sm"
-                                        onClick={handleBuyCurrentProperty}
-                                        className="text-xs py-1 px-2 h-6"
-                                      >
-                                        Buy ${currentSpace.price}
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      } else if (rowIndex === 5 && colIndex === 6) {
-                        // Dice Roller
-                        return (
-                          <Card key={`center-dice-${rowIndex}-${colIndex}`} className="col-span-2 p-3 bg-gradient-property border-2 border-primary/20">
-                            <div className="text-center space-y-2">
-                              <h2 className="text-sm font-bold">Monopoly</h2>
-                              <div className="text-xs text-muted-foreground">
-                                {players[currentPlayer]?.name}'s Turn
-                              </div>
-                              <div className="text-xs text-primary/70 font-medium">
-                                {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
-                              </div>
-                              {lastRoll && (
-                                <div className="text-xs text-primary font-medium animate-fade-in">
-                                  {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
-                                </div>
-                              )}
-                              <div className="scale-75">
-                                <DiceRoller 
-                                  onRoll={handleDiceRoll}
-                                  disabled={isRolling || turnPhase !== 'roll'}
-                                  isRolling={isRolling}
-                                />
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      } else {
-                        // Empty space for other center positions
-                        return <div key={`center-empty-${rowIndex}-${colIndex}`} className="aspect-square" />;
-                      }
-                    }
-                    
-                    // Regular board space
-                    return renderBoardSpace(space, rowIndex, colIndex);
-                  })
+                  row.map((space, colIndex) =>
+                    renderBoardSpace(space, rowIndex, colIndex)
+                  )
                 )}
+              </div>
+
+              {/* Center area with player info and dice roller */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex gap-3 pointer-events-auto justify-center items-center">
+                  {/* Current Player Position Info */}
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-sm font-bold text-primary">Current Position</h3>
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium">
+                          {currentPlayerData?.name}
+                        </div>
+                        <div className="text-sm font-bold leading-tight">
+                          {currentSpace?.name || "Unknown"}
+                        </div>
+                        {currentSpace?.type === 'property' && (
+                          <>
+                            {currentSpace.price && (
+                              <div className="text-xs text-primary font-medium">
+                                ${currentSpace.price}
+                              </div>
+                            )}
+                            {propertyOwner ? (
+                              <div className="text-xs text-amber-600 font-medium">
+                                Owner: {propertyOwner.name}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-green-600 font-medium">
+                                Available
+                              </div>
+                            )}
+                            {canBuyProperty && (
+                              <Button 
+                                variant="game" 
+                                size="sm"
+                                onClick={handleBuyCurrentProperty}
+                                className="text-xs py-1 px-2 h-6"
+                              >
+                                Buy ${currentSpace.price}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Dice Roller */}
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                    <div className="text-center space-y-2">
+                      <h2 className="text-sm font-bold">Monopoly</h2>
+                      <div className="text-xs text-muted-foreground">
+                        {players[currentPlayer]?.name}'s Turn
+                      </div>
+                      <div className="text-xs text-primary/70 font-medium">
+                        {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
+                      </div>
+                      {lastRoll && (
+                        <div className="text-xs text-primary font-medium animate-fade-in">
+                          {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
+                        </div>
+                      )}
+                      <div className="scale-75">
+                        <DiceRoller 
+                          onRoll={handleDiceRoll}
+                          disabled={isRolling || turnPhase !== 'roll'}
+                          isRolling={isRolling}
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                </div>
               </div>
             </Card>
           </div>
