@@ -306,20 +306,6 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       };
     }
     
-    // Place corner at top-left (Free Parking)
-    board[0][0] = boardSpaces[20] || { 
-      id: '20', 
-      name: 'Free Parking', 
-      type: 'corner' 
-    };
-    
-    // Place corner at top-right (Go to Jail)
-    board[0][10] = boardSpaces[30] || { 
-      id: '30', 
-      name: 'Go to Jail', 
-      type: 'corner' 
-    };
-    
     // Right column (bottom to top) - positions 11-19
     for (let i = 1; i <= 9; i++) {
       const spaceIndex = 10 + i;
@@ -331,22 +317,37 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
     }
     
     // Top row (right to left) - positions 20-29
+    // Place Free Parking corner (position 20)
+    board[0][0] = boardSpaces[20] || { 
+      id: '20', 
+      name: 'Free Parking', 
+      type: 'corner' 
+    };
+    
+    // Place properties 21-29
     for (let i = 1; i <= 9; i++) {
-      const spaceIndex = 19 + i;
-      board[1][10 - i] = boardSpaces[spaceIndex] || { 
+      const spaceIndex = 20 + i;
+      board[0][i] = boardSpaces[spaceIndex] || { 
         id: spaceIndex.toString(), 
         name: `Space ${spaceIndex + 1}`, 
         type: 'property' 
       };
     }
     
-    // Left column (top to bottom) - positions 30-39
+    // Place Go to Jail corner (position 30)
+    board[0][10] = boardSpaces[30] || { 
+      id: '30', 
+      name: 'Go to Jail', 
+      type: 'corner' 
+    };
+    
+    // Left column (top to bottom) - positions 31-39
     for (let i = 1; i <= 9; i++) {
-      const spaceIndex = 29 + i;
+      const spaceIndex = 30 + i;
       board[i][0] = boardSpaces[spaceIndex] || { 
         id: spaceIndex.toString(), 
         name: `Space ${spaceIndex + 1}`, 
-        type: i === 9 ? 'corner' : 'property' 
+        type: 'property' 
       };
     }
     
