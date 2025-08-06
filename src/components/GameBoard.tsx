@@ -372,7 +372,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
         variant="property"
         className={`
           aspect-square flex flex-col justify-between p-1 text-xs relative
-          ${isCorner ? 'w-20 h-20' : 'w-16 h-16'}
+          w-16 h-16
           ${space.type === 'corner' ? 'bg-gradient-secondary' : ''}
           ${propertyOwner ? 'border-4' : 'border-2'}
           hover:scale-105 transition-smooth
@@ -438,7 +438,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
           {/* Game Board */}
           <div className="lg:col-span-3">
             <Card variant="board" className="p-6">
-              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto">
+              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto items-center justify-items-center">
                 {board.map((row, rowIndex) =>
                   row.map((space, colIndex) =>
                     renderBoardSpace(space, rowIndex, colIndex)
