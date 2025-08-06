@@ -399,12 +399,12 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
         )}
         
         <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
-          <div className="font-medium leading-tight text-xs truncate px-1">{space.name}</div>
+          <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
           {space.price && (
-            <div className="text-primary font-bold text-xs truncate">${space.price}</div>
+            <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
           )}
           {propertyOwner && (
-            <div className="text-xs font-medium mt-1 truncate px-1" style={{ color: propertyOwner.color }}>
+            <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
               {propertyOwner.name}
             </div>
           )}
