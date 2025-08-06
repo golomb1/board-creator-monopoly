@@ -58,6 +58,14 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
     rent: 10,
     description: ''
   });
+  const [editingSpace, setEditingSpace] = useState<string | null>(null);
+  const [newSpace, setNewSpace] = useState<Partial<BoardSpace>>({
+    name: '',
+    type: 'property',
+    color: 'brown',
+    price: 100,
+    rent: 10
+  });
 
   const addProperty = () => {
     if (newProperty.name) {
@@ -83,6 +91,37 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
       p.id === id ? { ...p, ...updates } : p
     ));
     setEditingProperty(null);
+  };
+
+  const addSpace = () => {
+    if (newSpace.name) {
+      const space: BoardSpace = {
+        id: Date.now().toString(),
+        name: newSpace.name!,
+        type: newSpace.type!,
+        ...(newSpace.type === 'property' && {
+          color: newSpace.color,
+          price: newSpace.price,
+          rent: newSpace.rent
+        }),
+        ...(newSpace.type === 'action' && {
+          actionEffect: newSpace.actionEffect
+        })
+      };
+      setLocalBoardSpaces([...localBoardSpaces, space]);
+      setNewSpace({ name: '', type: 'property', color: 'brown', price: 100, rent: 10 });
+    }
+  };
+
+  const deleteSpace = (id: string) => {
+    setLocalBoardSpaces(localBoardSpaces.filter(s => s.id !== id));
+  };
+
+  const updateSpace = (id: string, updates: Partial<BoardSpace>) => {
+    setLocalBoardSpaces(localBoardSpaces.map(s => 
+      s.id === id ? { ...s, ...updates } : s
+    ));
+    setEditingSpace(null);
   };
 
   const generateDefaultBoard = () => {
@@ -334,15 +373,121 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
 
           {/* Board Tab */}
           <TabsContent value="board" className="space-y-6">
+            {/* Add New Board Space */}
             <Card variant="property">
               <CardHeader>
-                <CardTitle>Board Configuration</CardTitle>
+                <CardTitle>Create New Board Space</CardTitle>
                 <CardDescription>
-                  Customize the game board layout and spaces
+                  Add properties, actions, or corner spaces to your board
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div>
+                    <Label htmlFor="space-name">Space Name</Label>
+                    <Input
+                      id="space-name"
+                      value={newSpace.name}
+                      onChange={(e) => setNewSpace({ ...newSpace, name: e.target.value })}
+                      placeholder="Space name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="space-type">Space Type</Label>
+                    <Select
+                      value={newSpace.type}
+                      onValueChange={(value: 'property' | 'action' | 'corner') => setNewSpace({ ...newSpace, type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="property">Property</SelectItem>
+                        <SelectItem value="action">Action</SelectItem>
+                        <SelectItem value="corner">Corner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {newSpace.type === 'property' && (
+                    <>
+                      <div>
+                        <Label htmlFor="space-color">Color Group</Label>
+                        <Select
+                          value={newSpace.color}
+                          onValueChange={(value) => setNewSpace({ ...newSpace, color: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {propertyColors.map(color => (
+                              <SelectItem key={color.value} value={color.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-4 h-4 rounded ${color.color}`} />
+                                  {color.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="space-price">Price ($)</Label>
+                        <Input
+                          id="space-price"
+                          type="number"
+                          value={newSpace.price}
+                          onChange={(e) => setNewSpace({ ...newSpace, price: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="space-rent">Rent ($)</Label>
+                        <Input
+                          id="space-rent"
+                          type="number"
+                          value={newSpace.rent}
+                          onChange={(e) => setNewSpace({ ...newSpace, rent: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  {newSpace.type === 'action' && (
+                    <div className="col-span-2">
+                      <Label htmlFor="action-effect">Action Effect</Label>
+                      <Select
+                        value={newSpace.actionEffect}
+                        onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => setNewSpace({ ...newSpace, actionEffect: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select action effect" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="go-to-jail">Go to Jail</SelectItem>
+                          <SelectItem value="skip-turn">Skip Next Turn</SelectItem>
+                          <SelectItem value="extra-turn">Get Extra Turn</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+                
+                <Button onClick={addSpace} variant="game">
+                  <Plus className="w-4 h-4" />
+                  Add Board Space
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Board Management */}
+            <Card variant="property">
+              <CardHeader>
+                <CardTitle>Board Layout ({localBoardSpaces.length} spaces)</CardTitle>
+                <div className="flex gap-2">
                   <Button onClick={generateDefaultBoard} variant="secondary">
                     Generate Default Board
                   </Button>
@@ -351,28 +496,117 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                     Save Board Layout
                   </Button>
                 </div>
-                
-                <div className="text-sm text-muted-foreground">
-                  Board Spaces: {localBoardSpaces.length} / 40
-                </div>
-                
-                {/* Board preview */}
-                <div className="grid grid-cols-8 gap-2 max-w-4xl">
-                  {localBoardSpaces.slice(0, 32).map((space, index) => {
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {localBoardSpaces.map(space => {
                     const colorInfo = space.color ? propertyColors.find(c => c.value === space.color) : null;
+                    const isEditing = editingSpace === space.id;
                     
                     return (
-                      <Card key={space.id} className="p-2 text-xs">
-                        {colorInfo && (
-                          <div className={`h-1 ${colorInfo.color} rounded mb-1`} />
-                        )}
-                        <div className="font-medium">{space.name}</div>
-                        {space.price && (
-                          <div className="text-primary">${space.price}</div>
-                        )}
-                        <Badge variant="outline" className="text-xs">
-                          {space.type}
-                        </Badge>
+                      <Card key={space.id} className="border-2 border-border hover:border-primary/40 transition-smooth">
+                        <CardContent className="p-4">
+                          {colorInfo && (
+                            <div className={`h-3 ${colorInfo.color} rounded-t-md -mx-4 -mt-4 mb-3`} />
+                          )}
+                          
+                          {isEditing ? (
+                            <div className="space-y-3">
+                              <Input
+                                value={space.name}
+                                onChange={(e) => updateSpace(space.id, { name: e.target.value })}
+                                className="font-bold"
+                              />
+                              <Select
+                                value={space.type}
+                                onValueChange={(value: 'property' | 'action' | 'corner') => updateSpace(space.id, { type: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="property">Property</SelectItem>
+                                  <SelectItem value="action">Action</SelectItem>
+                                  <SelectItem value="corner">Corner</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              
+                              {space.type === 'property' && (
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="number"
+                                    value={space.price}
+                                    onChange={(e) => updateSpace(space.id, { price: parseInt(e.target.value) || 0 })}
+                                    placeholder="Price"
+                                    className="text-sm"
+                                  />
+                                  <Input
+                                    type="number"
+                                    value={space.rent}
+                                    onChange={(e) => updateSpace(space.id, { rent: parseInt(e.target.value) || 0 })}
+                                    placeholder="Rent"
+                                    className="text-sm"
+                                  />
+                                </div>
+                              )}
+                              
+                              {space.type === 'action' && (
+                                <Select
+                                  value={space.actionEffect}
+                                  onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => updateSpace(space.id, { actionEffect: value })}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="go-to-jail">Go to Jail</SelectItem>
+                                    <SelectItem value="skip-turn">Skip Next Turn</SelectItem>
+                                    <SelectItem value="extra-turn">Get Extra Turn</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                              
+                              <Button size="sm" onClick={() => setEditingSpace(null)}>
+                                <Save className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="font-bold text-lg mb-2">{space.name}</div>
+                              <div className="space-y-1 text-sm">
+                                <Badge variant="outline">{space.type}</Badge>
+                                {space.type === 'property' && (
+                                  <>
+                                    <div>Price: <span className="font-bold text-primary">${space.price}</span></div>
+                                    <div>Rent: <span className="font-bold text-secondary">${space.rent}</span></div>
+                                  </>
+                                )}
+                                {space.type === 'action' && space.actionEffect && (
+                                  <div className="text-muted-foreground">
+                                    Effect: {space.actionEffect.replace('-', ' ')}
+                                  </div>
+                                )}
+                              </div>
+                              <Separator className="my-3" />
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => setEditingSpace(space.id)}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive"
+                                  onClick={() => deleteSpace(space.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </CardContent>
                       </Card>
                     );
                   })}
