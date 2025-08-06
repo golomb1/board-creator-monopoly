@@ -383,14 +383,14 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
           <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
         )}
         
-        <div className="flex-1 flex flex-col justify-center text-center">
-          <div className="font-medium leading-tight">{space.name}</div>
+        <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
+          <div className="font-medium leading-tight text-xs truncate px-1">{space.name}</div>
           {space.price && (
-            <div className="text-primary font-bold">${space.price}</div>
+            <div className="text-primary font-bold text-xs truncate">${space.price}</div>
           )}
           {propertyOwner && (
-            <div className="text-xs font-medium mt-1" style={{ color: propertyOwner.color }}>
-              Owned by {propertyOwner.name}
+            <div className="text-xs font-medium mt-1 truncate px-1" style={{ color: propertyOwner.color }}>
+              {propertyOwner.name}
             </div>
           )}
         </div>
