@@ -322,7 +322,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       board[0][10 - i] = boardSpaces[spaceIndex] || { 
         id: spaceIndex.toString(), 
         name: `Space ${spaceIndex + 1}`, 
-        type: i === 9 ? 'corner' : 'property' 
+        type: spaceIndex === 20 ? 'corner' : 'property' 
       };
     }
     
