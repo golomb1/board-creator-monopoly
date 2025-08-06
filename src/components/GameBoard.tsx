@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Settings, ArrowRightLeft, Eye, MessageSquare, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import DiceRoller from "./DiceRoller";
@@ -64,6 +65,8 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
   const [selectedProperty, setSelectedProperty] = useState<string>("");
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
+  const [selectedSpaceDetails, setSelectedSpaceDetails] = useState<BoardSpace | null>(null);
+  const [isSpaceDetailsOpen, setIsSpaceDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   // Board position mapping - clockwise from GO
@@ -291,6 +294,35 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       description: "Buy request cancelled and money unlocked",
     });
   };
+
+  const getSpaceDescription = (space: BoardSpace) => {
+    const descriptions: Record<string, string> = {
+      '0': 'GO - Collect $200 when you pass or land here. This is the starting point of the game.',
+      '10': 'JAIL - Just visiting, unless you were sent here! A temporary holding place.',
+      '20': 'FREE PARKING - A safe space where nothing happens. Rest and relax.',
+      '30': 'GO TO JAIL - Go directly to jail, do not pass GO, do not collect $200.',
+    };
+    
+    // Default descriptions for property types
+    if (space.type === 'property') {
+      const ownerText = space.ownerId ? 
+        `Currently owned by ${players.find(p => p.id === space.ownerId)?.name}.` : 
+        'Available for purchase.';
+      return `${space.name} - A ${space.color || 'generic'} property. ${ownerText} ${space.price ? `Purchase price: $${space.price}.` : ''} ${space.rent ? `Rent: $${space.rent}.` : ''}`;
+    }
+    
+    if (space.type === 'special') {
+      return `${space.name} - A special space with unique rules and effects.`;
+    }
+    
+    return descriptions[space.id] || `${space.name} - ${space.type} space.`;
+  };
+
+  const handleSpaceClick = (space: BoardSpace) => {
+    setSelectedSpaceDetails(space);
+    setIsSpaceDetailsOpen(true);
+  };
+
   // Create a 11x11 grid for the board
   const createBoardLayout = () => {
     const board = Array(11).fill(null).map(() => Array(11).fill(null));
@@ -382,56 +414,65 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
     const ownerBorderStyle = propertyOwner ? { borderColor: propertyOwner.color, borderWidth: '3px' } : {};
 
     return (
-      <Card
-        key={space.id}
-        variant="property"
-        className={`
-          aspect-square flex flex-col justify-between p-1 text-xs relative
-          w-16 h-16
-          ${space.type === 'corner' ? 'bg-gradient-secondary' : ''}
-          ${propertyOwner ? 'border-4' : 'border-2'}
-          hover:scale-105 transition-smooth
-        `}
-        style={propertyOwner ? ownerBorderStyle : {}}
-      >
-        {space.type === 'property' && space.color && (
-          <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
-        )}
-        
-        <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
-          <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
-          {space.price && (
-            <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
-          )}
-          {propertyOwner && (
-            <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
-              {propertyOwner.name}
-            </div>
-          )}
-        </div>
+      <TooltipProvider key={space.id}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card
+              variant="property"
+              className={`
+                aspect-square flex flex-col justify-between p-1 text-xs relative
+                w-16 h-16 cursor-pointer
+                ${space.type === 'corner' ? 'bg-gradient-secondary' : ''}
+                ${propertyOwner ? 'border-4' : 'border-2'}
+                hover:scale-105 transition-smooth
+              `}
+              style={propertyOwner ? ownerBorderStyle : {}}
+              onClick={() => handleSpaceClick(space)}
+            >
+              {space.type === 'property' && space.color && (
+                <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
+              )}
+              
+              <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
+                <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
+                {space.price && (
+                  <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
+                )}
+                {propertyOwner && (
+                  <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
+                    {propertyOwner.name}
+                  </div>
+                )}
+              </div>
 
-        {playersOnSpace.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex gap-1 flex-wrap justify-center">
-            {playersOnSpace.map(player => (
-              <div
-                key={player.id}
-                className={`
-                  w-6 h-6 rounded-full border-3 border-white shadow-lg relative
-                  ${animatingPlayers.includes(player.id) ? 'animate-player-move scale-110' : ''}
-                  transition-all duration-500 ease-in-out transform
-                  hover:scale-125 hover:shadow-xl cursor-pointer
-                  before:content-[''] before:absolute before:-inset-1 
-                  before:rounded-full before:bg-white/30 before:scale-0
-                  ${animatingPlayers.includes(player.id) ? 'before:scale-100 before:animate-ping' : ''}
-                  before:transition-transform before:duration-300
-                `}
-                style={{ backgroundColor: player.color }}
-                title={player.name}
-              />
-            ))}
-          </div>
-        )}
-      </Card>
+              {playersOnSpace.length > 0 && (
+                <div className="absolute bottom-1 left-1 right-1 flex gap-1 flex-wrap justify-center">
+                  {playersOnSpace.map(player => (
+                    <div
+                      key={player.id}
+                      className={`
+                        w-6 h-6 rounded-full border-3 border-white shadow-lg relative
+                        ${animatingPlayers.includes(player.id) ? 'animate-player-move scale-110' : ''}
+                        transition-all duration-500 ease-in-out transform
+                        hover:scale-125 hover:shadow-xl cursor-pointer
+                        before:content-[''] before:absolute before:-inset-1 
+                        before:rounded-full before:bg-white/30 before:scale-0
+                        ${animatingPlayers.includes(player.id) ? 'before:scale-100 before:animate-ping' : ''}
+                        before:transition-transform before:duration-300
+                      `}
+                      style={{ backgroundColor: player.color }}
+                      title={player.name}
+                    />
+                  ))}
+                </div>
+              )}
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="font-medium">{space.name}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 
@@ -827,6 +868,54 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
           </div>
         </div>
       </div>
+
+      {/* Space Details Dialog */}
+      <Dialog open={isSpaceDetailsOpen} onOpenChange={setIsSpaceDetailsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedSpaceDetails?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm">
+              <p>{selectedSpaceDetails ? getSpaceDescription(selectedSpaceDetails) : ''}</p>
+            </div>
+            
+            {selectedSpaceDetails?.type === 'property' && (
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {selectedSpaceDetails.price && (
+                  <div>
+                    <span className="font-medium">Price:</span> ${selectedSpaceDetails.price}
+                  </div>
+                )}
+                {selectedSpaceDetails.rent && (
+                  <div>
+                    <span className="font-medium">Rent:</span> ${selectedSpaceDetails.rent}
+                  </div>
+                )}
+                {selectedSpaceDetails.color && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Color:</span>
+                    <div className={`w-4 h-4 rounded ${getPropertyColor(selectedSpaceDetails)}`} />
+                    <span className="capitalize">{selectedSpaceDetails.color}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="font-medium">Type:</span> {selectedSpaceDetails.type}
+                </div>
+              </div>
+            )}
+            
+            {selectedSpaceDetails?.ownerId && (
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="text-sm font-medium">Owner Information</div>
+                <div className="text-sm text-muted-foreground">
+                  Owned by {players.find(p => p.id === selectedSpaceDetails.ownerId)?.name}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
