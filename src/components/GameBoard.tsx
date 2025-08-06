@@ -438,308 +438,94 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
           {/* Game Board */}
           <div className="lg:col-span-3">
             <Card variant="board" className="p-6">
-              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto">
+              <div className="grid grid-cols-11 gap-1 max-w-3xl mx-auto relative">
                 {board.map((row, rowIndex) =>
-                  row.map((space, colIndex) =>
-                    renderBoardSpace(space, rowIndex, colIndex)
-                  )
+                  row.map((space, colIndex) => {
+                    // Check if this is a center position for cards
+                    if (rowIndex >= 4 && rowIndex <= 6 && colIndex >= 4 && colIndex <= 6) {
+                      // Center cards area
+                      if (rowIndex === 5 && colIndex === 4) {
+                        // Current Player Position Info
+                        return (
+                          <Card key={`center-player-${rowIndex}-${colIndex}`} className="col-span-2 p-3 bg-gradient-property border-2 border-primary/20">
+                            <div className="text-center space-y-2">
+                              <h3 className="text-sm font-bold text-primary">Current Position</h3>
+                              <div className="space-y-1">
+                                <div className="text-xs font-medium">
+                                  {currentPlayerData?.name}
+                                </div>
+                                <div className="text-sm font-bold leading-tight">
+                                  {currentSpace?.name || "Unknown"}
+                                </div>
+                                {currentSpace?.type === 'property' && (
+                                  <>
+                                    {currentSpace.price && (
+                                      <div className="text-xs text-primary font-medium">
+                                        ${currentSpace.price}
+                                      </div>
+                                    )}
+                                    {propertyOwner ? (
+                                      <div className="text-xs text-amber-600 font-medium">
+                                        Owner: {propertyOwner.name}
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs text-green-600 font-medium">
+                                        Available
+                                      </div>
+                                    )}
+                                    {canBuyProperty && (
+                                      <Button 
+                                        variant="game" 
+                                        size="sm"
+                                        onClick={handleBuyCurrentProperty}
+                                        className="text-xs py-1 px-2 h-6"
+                                      >
+                                        Buy ${currentSpace.price}
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      } else if (rowIndex === 5 && colIndex === 6) {
+                        // Dice Roller
+                        return (
+                          <Card key={`center-dice-${rowIndex}-${colIndex}`} className="col-span-2 p-3 bg-gradient-property border-2 border-primary/20">
+                            <div className="text-center space-y-2">
+                              <h2 className="text-sm font-bold">Monopoly</h2>
+                              <div className="text-xs text-muted-foreground">
+                                {players[currentPlayer]?.name}'s Turn
+                              </div>
+                              <div className="text-xs text-primary/70 font-medium">
+                                {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
+                              </div>
+                              {lastRoll && (
+                                <div className="text-xs text-primary font-medium animate-fade-in">
+                                  {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
+                                </div>
+                              )}
+                              <div className="scale-75">
+                                <DiceRoller 
+                                  onRoll={handleDiceRoll}
+                                  disabled={isRolling || turnPhase !== 'roll'}
+                                  isRolling={isRolling}
+                                />
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      } else {
+                        // Empty space for other center positions
+                        return <div key={`center-empty-${rowIndex}-${colIndex}`} className="aspect-square" />;
+                      }
+                    }
+                    
+                    // Regular board space
+                    return renderBoardSpace(space, rowIndex, colIndex);
+                  })
                 )}
-              </div>
-
-              {/* Center area with player info and dice roller */}
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {/* Current Player Position Info */}
-                <Card className="p-4 bg-gradient-property border-2 border-primary/20 min-w-[200px] max-w-[250px]">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-sm font-bold text-primary">Current Position</h3>
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium truncate">
-                        {currentPlayerData?.name}
-                      </div>
-                      <div className="text-sm font-bold leading-tight break-words">
-                        {currentSpace?.name || "Unknown"}
-                      </div>
-                      {currentSpace?.type === 'property' && (
-                        <>
-                          {currentSpace.price && (
-                            <div className="text-xs text-primary font-medium">
-                              ${currentSpace.price}
-                            </div>
-                          )}
-                          {propertyOwner ? (
-                            <div className="text-xs text-amber-600 font-medium truncate">
-                              Owner: {propertyOwner.name}
-                            </div>
-                          ) : (
-                            <div className="text-xs text-green-600 font-medium">
-                              Available
-                            </div>
-                          )}
-                          {canBuyProperty && (
-                            <Button 
-                              variant="game" 
-                              size="sm"
-                              onClick={handleBuyCurrentProperty}
-                              className="text-xs py-1 px-3 h-7 w-full"
-                            >
-                              Buy ${currentSpace.price}
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Dice Roller */}
-                <Card className="p-4 bg-gradient-property border-2 border-primary/20 min-w-[180px] max-w-[200px]">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-sm font-bold text-primary">Roll Dice</h3>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {players[currentPlayer]?.name}'s Turn
-                    </div>
-                    <div className="text-xs text-primary/70 font-medium">
-                      {turnPhase === 'roll' ? 'Roll Dice' : 'Take Actions'}
-                    </div>
-                    {lastRoll && (
-                      <div className="text-xs text-primary font-medium animate-fade-in">
-                        {lastRoll.dice1} + {lastRoll.dice2} = {lastRoll.total}
-                      </div>
-                    )}
-                    <div className="scale-75">
-                      <DiceRoller 
-                        onRoll={handleDiceRoll}
-                        disabled={isRolling || turnPhase !== 'roll'}
-                        isRolling={isRolling}
-                      />
-                    </div>
-                    {turnPhase === 'actions' && (
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        onClick={handleEndTurn}
-                        className="text-xs py-1 px-3 h-7 w-full"
-                      >
-                        End Turn
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-
-                {/* Action Buttons */}
-                <Card className="p-4 bg-gradient-property border-2 border-primary/20 min-w-[220px] max-w-[250px]">
-                  <div className="text-center space-y-2">
-                    <h3 className="text-sm font-bold text-primary">Quick Actions</h3>
-                    <div className="flex flex-col gap-2">
-                      <Dialog open={isPropertiesOpen} onOpenChange={setIsPropertiesOpen}>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs">
-                            <Eye className="w-4 h-4 mr-2" />
-                            <span className="hidden md:inline">View Properties</span>
-                            <span className="md:hidden">View</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>{currentPlayerData?.name}'s Properties</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-3">
-                            {currentPlayerData?.properties.length === 0 ? (
-                              <p className="text-muted-foreground text-center py-4">No properties owned</p>
-                            ) : (
-                              currentPlayerData?.properties.map(propertyId => {
-                                const property = boardSpaces.find(space => space.id === propertyId);
-                                return property ? (
-                                  <Card key={propertyId} className="p-3">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <h4 className="font-medium">{property.name}</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                          Value: ${property.price} | Rent: ${property.rent || 50}
-                                        </p>
-                                      </div>
-                                      {property.color && (
-                                        <div className={`w-4 h-4 rounded ${getPropertyColor(property)}`} />
-                                      )}
-                                    </div>
-                                  </Card>
-                                ) : null;
-                              })
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Dialog open={isRequestsOpen} onOpenChange={setIsRequestsOpen}>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 text-xs">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            <span className="hidden md:inline">Manage Requests</span>
-                            <span className="md:hidden">Requests</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>Buy Requests</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 max-h-96 overflow-y-auto">
-                            {/* Received Requests */}
-                            <div>
-                              <h4 className="font-medium text-sm mb-2">Requests Received:</h4>
-                              {(buyRequests || []).filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No pending requests</p>
-                              ) : (
-                                (buyRequests || []).filter(r => r.toPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
-                                  const property = boardSpaces.find(s => s.id === request.propertyId);
-                                  const fromPlayer = players.find(p => p.id === request.fromPlayerId);
-                                  return (
-                                    <Card key={request.id} className="p-3 mb-2">
-                                      <div className="space-y-2">
-                                        <div className="text-sm">
-                                          <strong>{fromPlayer?.name}</strong> wants to buy <strong>{property?.name}</strong> for <strong>${request.amount}</strong>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          <Button 
-                                            size="sm" 
-                                            variant="default"
-                                            onClick={() => handleBuyRequestResponse(request.id, true)}
-                                            className="flex-1"
-                                          >
-                                            Accept
-                                          </Button>
-                                          <Button 
-                                            size="sm" 
-                                            variant="destructive"
-                                            onClick={() => handleBuyRequestResponse(request.id, false)}
-                                            className="flex-1"
-                                          >
-                                            Decline
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </Card>
-                                  );
-                                })
-                              )}
-                            </div>
-                            
-                            {/* Sent Requests */}
-                            <div>
-                              <h4 className="font-medium text-sm mb-2">Requests Sent:</h4>
-                              {(buyRequests || []).filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').length === 0 ? (
-                                <p className="text-sm text-muted-foreground">No pending requests</p>
-                              ) : (
-                                (buyRequests || []).filter(r => r.fromPlayerId === currentPlayerData.id && r.status === 'pending').map(request => {
-                                  const property = boardSpaces.find(s => s.id === request.propertyId);
-                                  const toPlayer = players.find(p => p.id === request.toPlayerId);
-                                  return (
-                                    <Card key={request.id} className="p-3 mb-2">
-                                      <div className="space-y-2">
-                                        <div className="text-sm">
-                                          Buying <strong>{property?.name}</strong> from <strong>{toPlayer?.name}</strong> for <strong>${request.amount}</strong>
-                                        </div>
-                                        <Button 
-                                          size="sm" 
-                                          variant="outline"
-                                          onClick={() => handleCancelRequest(request.id)}
-                                          className="w-full"
-                                        >
-                                          Cancel Request
-                                        </Button>
-                                      </div>
-                                    </Card>
-                                  );
-                                })
-                              )}
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Dialog open={isTradeOpen} onOpenChange={setIsTradeOpen}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 text-xs"
-                            disabled={!canTrade || otherPlayers.length === 0}
-                          >
-                            <Send className="w-4 h-4 mr-2" />
-                            <span className="hidden md:inline">Send Buy Request</span>
-                            <span className="md:hidden">Send</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Buy Property from Player</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <label className="text-sm font-medium">Buy from:</label>
-                              <Select value={selectedTradePlayer} onValueChange={setSelectedTradePlayer}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a player" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {otherPlayers.filter(p => p.properties.length > 0).map(player => (
-                                    <SelectItem key={player.id} value={player.id}>
-                                      {player.name} ({player.properties.length} properties)
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            {selectedTradePlayer && (
-                              <div>
-                                <label className="text-sm font-medium">Select property:</label>
-                                <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a property" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {otherPlayers
-                                      .find(p => p.id === selectedTradePlayer)
-                                      ?.properties.map(propertyId => {
-                                        const property = boardSpaces.find(space => space.id === propertyId);
-                                        return property ? (
-                                          <SelectItem key={propertyId} value={propertyId}>
-                                            {property.name} - ${property.price}
-                                          </SelectItem>
-                                        ) : null;
-                                      })}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                            
-                            {selectedProperty && (
-                              <div className="p-3 bg-muted rounded-lg">
-                                <p className="text-sm">
-                                  You will pay: <span className="font-bold">
-                                    ${boardSpaces.find(s => s.id === selectedProperty)?.price}
-                                  </span>
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Available money: ${currentPlayerData?.money - currentPlayerData?.lockedMoney}
-                                </p>
-                              </div>
-                            )}
-                            
-                            <Button 
-                              onClick={handleSendBuyRequest} 
-                              className="w-full" 
-                              disabled={!selectedTradePlayer || !selectedProperty || 
-                                (currentPlayerData?.money - currentPlayerData?.lockedMoney || 0) < (boardSpaces.find(s => s.id === selectedProperty)?.price || 0)}
-                            >
-                              Send Buy Request
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                </Card>
               </div>
             </Card>
           </div>
