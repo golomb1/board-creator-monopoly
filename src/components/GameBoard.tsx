@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Settings, ArrowRightLeft } from "lucide-react";
+import { Users, Settings, ArrowRightLeft, Eye, MessageSquare, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -448,7 +448,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
 
               {/* Center area with player info and dice roller */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex gap-3 pointer-events-auto">
+                <div className="flex gap-3 pointer-events-auto justify-center items-center">
                   {/* Current Player Position Info */}
                   <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
                     <div className="text-center space-y-2">
@@ -576,13 +576,14 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               <div className="space-y-2">
                 <Dialog open={isPropertiesOpen} onOpenChange={setIsPropertiesOpen}>
                   <DialogTrigger asChild>
-                    <Button 
+                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full"
                       disabled={turnPhase !== 'actions'}
                     >
-                      View Properties
+                      <Eye className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">View Properties</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -618,13 +619,14 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 
                 <Dialog open={isRequestsOpen} onOpenChange={setIsRequestsOpen}>
                   <DialogTrigger asChild>
-                    <Button 
+                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full"
                       disabled={turnPhase !== 'actions'}
                     >
-                      Manage Requests
+                      <MessageSquare className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">Manage Requests</span>
                       {(buyRequests || []).filter(r => 
                         (r.fromPlayerId === currentPlayerData.id || r.toPlayerId === currentPlayerData.id) && 
                         r.status === 'pending'
@@ -718,14 +720,14 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 
                 <Dialog open={isTradeOpen} onOpenChange={setIsTradeOpen}>
                   <DialogTrigger asChild>
-                    <Button 
+                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full"
                       disabled={!canTrade}
                     >
-                      <ArrowRightLeft className="w-4 h-4 mr-2" />
-                      Send Buy Request
+                      <Send className="w-4 h-4 md:mr-2" />
+                      <span className="hidden md:inline">Send Buy Request</span>
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
