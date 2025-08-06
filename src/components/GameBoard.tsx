@@ -306,6 +306,20 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       };
     }
     
+    // Place corner at top-left (Free Parking)
+    board[0][0] = boardSpaces[20] || { 
+      id: '20', 
+      name: 'Free Parking', 
+      type: 'corner' 
+    };
+    
+    // Place corner at top-right (Go to Jail)
+    board[0][10] = boardSpaces[30] || { 
+      id: '30', 
+      name: 'Go to Jail', 
+      type: 'corner' 
+    };
+    
     // Right column (bottom to top) - positions 11-19
     for (let i = 1; i <= 9; i++) {
       const spaceIndex = 10 + i;
@@ -319,10 +333,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
     // Top row (right to left) - positions 20-29
     for (let i = 1; i <= 9; i++) {
       const spaceIndex = 19 + i;
-      board[0][10 - i] = boardSpaces[spaceIndex] || { 
+      board[1][10 - i] = boardSpaces[spaceIndex] || { 
         id: spaceIndex.toString(), 
         name: `Space ${spaceIndex + 1}`, 
-        type: spaceIndex === 20 ? 'corner' : 'property' 
+        type: 'property' 
       };
     }
     
