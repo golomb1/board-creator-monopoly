@@ -465,7 +465,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="flex gap-3 pointer-events-auto justify-center items-center">
                   {/* Current Player Position Info */}
-                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48 h-40">
                     <div className="text-center space-y-2">
                       <h3 className="text-sm font-bold text-primary">Current Position</h3>
                       <div className="space-y-1">
@@ -508,7 +508,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                   </Card>
 
                   {/* Dice Roller */}
-                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
+                  <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48 h-40">
                     <div className="text-center space-y-2">
                       <h2 className="text-sm font-bold">Monopoly</h2>
                       <div className="text-xs text-muted-foreground">
