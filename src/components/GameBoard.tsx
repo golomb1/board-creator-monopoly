@@ -463,7 +463,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
 
               {/* Center area with player info and dice roller - positioned relative to board */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex gap-3 pointer-events-auto justify-center items-center">
+                <div className="flex gap-3 pointer-events-auto justify-center items-stretch">
                   {/* Current Player Position Info */}
                   <Card className="p-3 bg-gradient-property border-2 border-primary/20 w-48">
                     <div className="text-center space-y-2">
