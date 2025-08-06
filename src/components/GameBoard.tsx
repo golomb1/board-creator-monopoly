@@ -32,11 +32,12 @@ interface BuyRequest {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'special' | 'corner';
+  type: 'property' | 'action' | 'corner';
   color?: string;
   price?: number;
   rent?: number;
   ownerId?: string; // ID of player who owns this property
+  actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
 }
 
 interface GameBoardProps {
@@ -67,6 +68,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
   const [selectedSpaceDetails, setSelectedSpaceDetails] = useState<BoardSpace | null>(null);
   const [isSpaceDetailsOpen, setIsSpaceDetailsOpen] = useState(false);
+  const [skipNextTurn, setSkipNextTurn] = useState<string[]>([]); // Players who skip next turn
   const { toast } = useToast();
 
   // Board position mapping - clockwise from GO
@@ -99,11 +101,22 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
   const handleDiceRoll = (total: number, dice1: number, dice2: number) => {
     if (turnPhase !== 'roll') return;
     
+    // Check if current player should skip turn
+    const currentPlayerId = players[currentPlayer].id;
+    if (skipNextTurn.includes(currentPlayerId)) {
+      setSkipNextTurn(prev => prev.filter(id => id !== currentPlayerId));
+      toast({
+        title: "Turn Skipped",
+        description: `${players[currentPlayer].name} skips this turn due to an action card`,
+      });
+      handleEndTurn();
+      return;
+    }
+    
     setLastRoll({ total, dice1, dice2 });
     setIsRolling(true);
     
     // Animate current player movement
-    const currentPlayerId = players[currentPlayer].id;
     setAnimatingPlayers([currentPlayerId]);
     
     setTimeout(() => {
@@ -111,7 +124,53 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       setIsRolling(false);
       setTurnPhase('actions');
       onRollDice(total, dice1, dice2);
+      
+      // Handle action space effects after moving
+      const newPosition = (players[currentPlayer].position + total) % 40;
+      const landedSpace = boardSpaces[newPosition];
+      if (landedSpace?.type === 'action' && landedSpace.actionEffect) {
+        handleActionEffect(landedSpace.actionEffect, currentPlayerId);
+      }
     }, 1000);
+  };
+
+  const handleActionEffect = (effect: 'go-to-jail' | 'skip-turn' | 'extra-turn', playerId: string) => {
+    const player = players.find(p => p.id === playerId);
+    if (!player) return;
+    
+    switch (effect) {
+      case 'go-to-jail':
+        // Move player to jail (position 10)
+        const updatedPlayersJail = players.map(p => 
+          p.id === playerId ? { ...p, position: 10 } : p
+        );
+        onUpdatePlayers(updatedPlayersJail);
+        toast({
+          title: "Go to Jail!",
+          description: `${player.name} goes directly to jail!`,
+          variant: "destructive"
+        });
+        break;
+        
+      case 'skip-turn':
+        setSkipNextTurn(prev => [...prev, playerId]);
+        toast({
+          title: "Skip Next Turn",
+          description: `${player.name} will skip their next turn`,
+          variant: "destructive"
+        });
+        break;
+        
+      case 'extra-turn':
+        toast({
+          title: "Extra Turn!",
+          description: `${player.name} gets another turn!`,
+        });
+        // Don't advance to next player - stay on current player
+        setTurnPhase('roll');
+        setLastRoll(null);
+        return; // Exit early to prevent normal turn end
+    }
   };
 
   const handleEndTurn = () => {
@@ -311,8 +370,11 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       return `${space.name} - A ${space.color || 'generic'} property. ${ownerText} ${space.price ? `Purchase price: $${space.price}.` : ''} ${space.rent ? `Rent: $${space.rent}.` : ''}`;
     }
     
-    if (space.type === 'special') {
-      return `${space.name} - A special space with unique rules and effects.`;
+    if (space.type === 'action') {
+      const effectText = space.actionEffect === 'go-to-jail' ? 'Sends you to jail immediately.' :
+                        space.actionEffect === 'skip-turn' ? 'You skip your next turn.' :
+                        space.actionEffect === 'extra-turn' ? 'Get an extra turn!' : '';
+      return `${space.name} - ${effectText}`;
     }
     
     return descriptions[space.id] || `${space.name} - ${space.type} space.`;
@@ -433,10 +495,20 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
               )}
               
+              {space.type === 'action' && (
+                <div className="h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-sm animate-pulse" />
+              )}
+              
               <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
                 <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
                 {space.price && (
                   <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
+                )}
+                {space.type === 'action' && space.actionEffect && (
+                  <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">
+                    {space.actionEffect === 'go-to-jail' ? '🚨' : 
+                     space.actionEffect === 'skip-turn' ? '⏸️' : '🎉'}
+                  </div>
                 )}
                 {propertyOwner && (
                   <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>

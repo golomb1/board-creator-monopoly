@@ -34,11 +34,12 @@ interface PropertyCard {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'special' | 'corner';
+  type: 'property' | 'action' | 'corner';
   color?: string;
   price?: number;
   rent?: number;
   ownerId?: string; // ID of player who owns this property
+  actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
 }
 
 const Index = () => {
@@ -69,43 +70,43 @@ const Index = () => {
   const [boardSpaces, setBoardSpaces] = useState<BoardSpace[]>([
     { id: '0', name: 'GO', type: 'corner' },
     { id: '1', name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, rent: 2 },
-    { id: '2', name: 'Community Chest', type: 'special' },
+    { id: '2', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
     { id: '3', name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, rent: 4 },
-    { id: '4', name: 'Income Tax', type: 'special' },
+    { id: '4', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
     { id: '5', name: 'Reading Railroad', type: 'property', price: 200, rent: 25 },
     { id: '6', name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, rent: 6 },
-    { id: '7', name: 'Chance', type: 'special' },
+    { id: '7', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
     { id: '8', name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, rent: 6 },
     { id: '9', name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, rent: 8 },
     { id: '10', name: 'Jail', type: 'corner' },
     { id: '11', name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, rent: 10 },
-    { id: '12', name: 'Electric Company', type: 'special' },
+    { id: '12', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
     { id: '13', name: 'States Ave', type: 'property', color: 'pink', price: 140, rent: 10 },
     { id: '14', name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, rent: 12 },
     { id: '15', name: 'Pennsylvania Railroad', type: 'property', price: 200, rent: 25 },
     { id: '16', name: 'St. James Place', type: 'property', color: 'orange', price: 180, rent: 14 },
-    { id: '17', name: 'Community Chest', type: 'special' },
+    { id: '17', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
     { id: '18', name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, rent: 14 },
     { id: '19', name: 'New York Ave', type: 'property', color: 'orange', price: 200, rent: 16 },
     { id: '20', name: 'Free Parking', type: 'corner' },
     { id: '21', name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, rent: 18 },
-    { id: '22', name: 'Chance', type: 'special' },
+    { id: '22', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
     { id: '23', name: 'Indiana Ave', type: 'property', color: 'red', price: 220, rent: 18 },
     { id: '24', name: 'Illinois Ave', type: 'property', color: 'red', price: 240, rent: 20 },
     { id: '25', name: 'B&O Railroad', type: 'property', price: 200, rent: 25 },
     { id: '26', name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, rent: 22 },
     { id: '27', name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, rent: 22 },
-    { id: '28', name: 'Water Works', type: 'special' },
+    { id: '28', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
     { id: '29', name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, rent: 24 },
     { id: '30', name: 'Go to Jail', type: 'corner' },
     { id: '31', name: 'Pacific Ave', type: 'property', color: 'green', price: 300, rent: 26 },
     { id: '32', name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, rent: 26 },
-    { id: '33', name: 'Community Chest', type: 'special' },
+    { id: '33', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
     { id: '34', name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, rent: 28 },
     { id: '35', name: 'Short Line', type: 'property', price: 200, rent: 25 },
-    { id: '36', name: 'Chance', type: 'special' },
+    { id: '36', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
     { id: '37', name: 'Park Place', type: 'property', color: 'blue', price: 350, rent: 35 },
-    { id: '38', name: 'Luxury Tax', type: 'special' },
+    { id: '38', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
     { id: '39', name: 'Boardwalk', type: 'property', color: 'blue', price: 400, rent: 50 },
   ]);
 
