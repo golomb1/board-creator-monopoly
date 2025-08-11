@@ -66,6 +66,8 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
     price: 100,
     rent: 10
   });
+  const [editingPropertyDraft, setEditingPropertyDraft] = useState<Partial<PropertyCard> | null>(null);
+  const [editingSpaceDraft, setEditingSpaceDraft] = useState<Partial<BoardSpace> | null>(null);
 
   const addProperty = () => {
     if (newProperty.name) {
@@ -90,7 +92,6 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
     setLocalProperties(localProperties.map(p => 
       p.id === id ? { ...p, ...updates } : p
     ));
-    setEditingProperty(null);
   };
 
   const addSpace = () => {
@@ -121,7 +122,6 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
     setLocalBoardSpaces(localBoardSpaces.map(s => 
       s.id === id ? { ...s, ...updates } : s
     ));
-    setEditingSpace(null);
   };
 
   const generateDefaultBoard = () => {
@@ -311,25 +311,50 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                           {isEditing ? (
                             <div className="space-y-3">
                               <Input
-                                value={property.name}
-                                onChange={(e) => updateProperty(property.id, { name: e.target.value })}
+                                value={editingPropertyDraft?.name ?? property.name}
+                                onChange={(e) => setEditingPropertyDraft({ ...(editingPropertyDraft ?? {}), name: e.target.value })}
+                                onBlur={() => {
+                                  if (editingPropertyDraft?.name !== undefined) {
+                                    updateProperty(property.id, { name: editingPropertyDraft.name as string });
+                                  }
+                                }}
                                 className="font-bold"
                               />
                               <div className="flex gap-2">
                                 <Input
                                   type="number"
-                                  value={property.price}
-                                  onChange={(e) => updateProperty(property.id, { price: parseInt(e.target.value) || 0 })}
+                                  value={editingPropertyDraft?.price ?? property.price}
+                                  onChange={(e) => setEditingPropertyDraft({
+                                    ...(editingPropertyDraft ?? {}),
+                                    price: parseInt(e.target.value) || 0
+                                  })}
+                                  onBlur={() => {
+                                    if (editingPropertyDraft?.price !== undefined) {
+                                      updateProperty(property.id, { price: editingPropertyDraft.price as number });
+                                    }
+                                  }}
                                   className="text-sm"
                                 />
                                 <Input
                                   type="number"
-                                  value={property.rent}
-                                  onChange={(e) => updateProperty(property.id, { rent: parseInt(e.target.value) || 0 })}
+                                  value={editingPropertyDraft?.rent ?? property.rent}
+                                  onChange={(e) => setEditingPropertyDraft({
+                                    ...(editingPropertyDraft ?? {}),
+                                    rent: parseInt(e.target.value) || 0
+                                  })}
+                                  onBlur={() => {
+                                    if (editingPropertyDraft?.rent !== undefined) {
+                                      updateProperty(property.id, { rent: editingPropertyDraft.rent as number });
+                                    }
+                                  }}
                                   className="text-sm"
                                 />
                               </div>
-                              <Button size="sm" onClick={() => setEditingProperty(null)}>
+                              <Button size="sm" onClick={() => { 
+                                if (editingPropertyDraft) updateProperty(property.id, editingPropertyDraft); 
+                                setEditingProperty(null);
+                                setEditingPropertyDraft(null);
+                              }}>
                                 <Save className="w-3 h-3" />
                               </Button>
                             </div>
@@ -513,13 +538,21 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                           {isEditing ? (
                             <div className="space-y-3">
                               <Input
-                                value={space.name}
-                                onChange={(e) => updateSpace(space.id, { name: e.target.value })}
+                                value={editingSpaceDraft?.name ?? space.name}
+                                onChange={(e) => setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), name: e.target.value })}
+                                onBlur={() => {
+                                  if (editingSpaceDraft?.name !== undefined) {
+                                    updateSpace(space.id, { name: editingSpaceDraft.name as string });
+                                  }
+                                }}
                                 className="font-bold"
                               />
                               <Select
-                                value={space.type}
-                                onValueChange={(value: 'property' | 'action' | 'corner') => updateSpace(space.id, { type: value })}
+                                value={editingSpaceDraft?.type ?? space.type}
+                                onValueChange={(value: 'property' | 'action' | 'corner') => {
+                                  setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), type: value });
+                                  updateSpace(space.id, { type: value });
+                                }}
                               >
                                 <SelectTrigger>
                                   <SelectValue />
@@ -531,29 +564,48 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 </SelectContent>
                               </Select>
                               
-                              {space.type === 'property' && (
+                              { (editingSpaceDraft?.type ?? space.type) === 'property' && (
                                 <div className="flex gap-2">
                                   <Input
                                     type="number"
-                                    value={space.price}
-                                    onChange={(e) => updateSpace(space.id, { price: parseInt(e.target.value) || 0 })}
+                                    value={editingSpaceDraft?.price ?? space.price}
+                                    onChange={(e) => setEditingSpaceDraft({
+                                      ...(editingSpaceDraft ?? space),
+                                      price: parseInt(e.target.value) || 0
+                                    })}
+                                    onBlur={() => {
+                                      if (editingSpaceDraft?.price !== undefined) {
+                                        updateSpace(space.id, { price: editingSpaceDraft.price as number });
+                                      }
+                                    }}
                                     placeholder="Price"
                                     className="text-sm"
                                   />
                                   <Input
                                     type="number"
-                                    value={space.rent}
-                                    onChange={(e) => updateSpace(space.id, { rent: parseInt(e.target.value) || 0 })}
+                                    value={editingSpaceDraft?.rent ?? space.rent}
+                                    onChange={(e) => setEditingSpaceDraft({
+                                      ...(editingSpaceDraft ?? space),
+                                      rent: parseInt(e.target.value) || 0
+                                    })}
+                                    onBlur={() => {
+                                      if (editingSpaceDraft?.rent !== undefined) {
+                                        updateSpace(space.id, { rent: editingSpaceDraft.rent as number });
+                                      }
+                                    }}
                                     placeholder="Rent"
                                     className="text-sm"
                                   />
                                 </div>
                               )}
                               
-                              {space.type === 'action' && (
+                              { (editingSpaceDraft?.type ?? space.type) === 'action' && (
                                 <Select
-                                  value={space.actionEffect}
-                                  onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => updateSpace(space.id, { actionEffect: value })}
+                                  value={editingSpaceDraft?.actionEffect ?? space.actionEffect}
+                                  onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => {
+                                    setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), actionEffect: value });
+                                    updateSpace(space.id, { actionEffect: value });
+                                  }}
                                 >
                                   <SelectTrigger>
                                     <SelectValue />
@@ -566,7 +618,11 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 </Select>
                               )}
                               
-                              <Button size="sm" onClick={() => setEditingSpace(null)}>
+                              <Button size="sm" onClick={() => { 
+                                if (editingSpaceDraft) updateSpace(space.id, editingSpaceDraft);
+                                setEditingSpace(null);
+                                setEditingSpaceDraft(null);
+                              }}>
                                 <Save className="w-3 h-3" />
                               </Button>
                             </div>
@@ -592,7 +648,17 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => setEditingSpace(space.id)}
+                                  onClick={() => {
+                                    setEditingSpace(space.id);
+                                    setEditingSpaceDraft({
+                                      name: space.name,
+                                      type: space.type,
+                                      color: space.color,
+                                      price: space.price,
+                                      rent: space.rent,
+                                      actionEffect: space.actionEffect
+                                    });
+                                  }}
                                 >
                                   <Edit className="w-3 h-3" />
                                 </Button>
