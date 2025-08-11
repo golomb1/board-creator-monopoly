@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Plus, Trash2, Edit, Save, Home, Building, Check, Loader2, Upload, Download } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit, Save, Home, Building, Check, Loader2, Upload, Download, Undo2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -73,6 +73,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
   });
   const [editingPropertyDraft, setEditingPropertyDraft] = useState<Partial<PropertyCard> | null>(null);
   const [editingSpaceDraft, setEditingSpaceDraft] = useState<Partial<BoardSpace> | null>(null);
+  const [editingSpaceOriginal, setEditingSpaceOriginal] = useState<BoardSpace | null>(null);
   const [localTitle, setLocalTitle] = useState<string>(gameTitle);
   const [isPropertiesDirty, setIsPropertiesDirty] = useState(false);
   const [isBoardDirty, setIsBoardDirty] = useState(false);
@@ -788,13 +789,27 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                   <div className="h-8 mt-2 overflow-hidden" dangerouslySetInnerHTML={{ __html: (editingSpaceDraft?.svgXml ?? space.svgXml) as string }} />
                                 ) : null}
                               </div>
-                              <Button size="sm" onClick={() => { 
-                                if (editingSpaceDraft) updateSpace(space.id, editingSpaceDraft);
-                                setEditingSpace(null);
-                                setEditingSpaceDraft(null);
-                              }}>
-                                <Save className="w-3 h-3" />
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => { 
+                                  if (editingSpaceDraft) updateSpace(space.id, editingSpaceDraft);
+                                  setEditingSpace(null);
+                                  setEditingSpaceDraft(null);
+                                  setEditingSpaceOriginal(null);
+                                }}>
+                                  <Save className="w-3 h-3" />
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => {
+                                  if (editingSpaceOriginal && editingSpaceOriginal.id === space.id) {
+                                    setLocalBoardSpaces(prev => prev.map(s => s.id === space.id ? editingSpaceOriginal : s));
+                                  }
+                                  setEditingSpace(null);
+                                  setEditingSpaceDraft(null);
+                                  setEditingSpaceOriginal(null);
+                                  toast({ title: "Changes Discarded", description: `Reverted edits for ${space.name}` });
+                                }}>
+                                  <Undo2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
                           ) : (
                             <>
@@ -820,13 +835,15 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                   variant="outline"
                                   onClick={() => {
                                     setEditingSpace(space.id);
+                                    setEditingSpaceOriginal({ ...space });
                                     setEditingSpaceDraft({
                                       name: space.name,
                                       type: space.type,
                                       color: space.color,
                                       price: space.price,
                                       rent: space.rent,
-                                      actionEffect: space.actionEffect
+                                      actionEffect: space.actionEffect,
+                                      svgXml: space.svgXml,
                                     });
                                   }}
                                 >
