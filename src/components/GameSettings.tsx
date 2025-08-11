@@ -23,7 +23,7 @@ interface PropertyCard {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'action' | 'corner';
+  type: 'property' | 'action' | 'corner' | 'jail';
   color?: string;
   price?: number;
   rent?: number;
@@ -510,7 +510,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                     <Label htmlFor="space-type">Space Type</Label>
                     <Select
                       value={newSpace.type}
-                      onValueChange={(value: 'property' | 'action' | 'corner') => setNewSpace({ ...newSpace, type: value })}
+                      onValueChange={(value: 'property' | 'action' | 'corner' | 'jail') => setNewSpace({ ...newSpace, type: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -519,6 +519,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                         <SelectItem value="property">Property</SelectItem>
                         <SelectItem value="action">Action</SelectItem>
                         <SelectItem value="corner">Corner</SelectItem>
+                        <SelectItem value="jail">Jail</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -701,7 +702,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                               />
                               <Select
                                 value={editingSpaceDraft?.type ?? space.type}
-                                onValueChange={(value: 'property' | 'action' | 'corner') => {
+                                onValueChange={(value: 'property' | 'action' | 'corner' | 'jail') => {
                                   setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), type: value });
                                   updateSpace(space.id, { type: value });
                                 }}
@@ -713,6 +714,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                   <SelectItem value="property">Property</SelectItem>
                                   <SelectItem value="action">Action</SelectItem>
                                   <SelectItem value="corner">Corner</SelectItem>
+                                  <SelectItem value="jail">Jail</SelectItem>
                                 </SelectContent>
                               </Select>
                               

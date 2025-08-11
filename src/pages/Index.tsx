@@ -34,7 +34,7 @@ interface PropertyCard {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'action' | 'corner';
+  type: 'property' | 'action' | 'corner' | 'jail';
   color?: string;
   price?: number;
   rent?: number;

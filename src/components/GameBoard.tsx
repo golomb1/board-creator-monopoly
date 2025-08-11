@@ -32,7 +32,7 @@ interface BuyRequest {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'action' | 'corner';
+  type: 'property' | 'action' | 'corner' | 'jail';
   color?: string;
   price?: number;
   rent?: number;
@@ -379,6 +379,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       return `${space.name} - ${effectText}`;
     }
     
+    if (space.type === 'jail') {
+      return `${space.name || 'Jail'} - Just visiting unless sent here.`;
+    }
+    
     return descriptions[space.id] || `${space.name} - ${space.type} space.`;
   };
 
@@ -486,7 +490,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               className={`
                 aspect-square flex flex-col justify-between p-1 text-xs relative
                 w-16 h-16 cursor-pointer
-                ${space.type === 'corner' ? 'bg-gradient-secondary' : ''}
+                ${(space.type === 'corner' || space.type === 'jail') ? 'bg-gradient-secondary' : ''}
                 ${propertyOwner ? 'border-4' : 'border-2'}
                 hover:scale-105 transition-smooth
               `}
