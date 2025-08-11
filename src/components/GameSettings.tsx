@@ -83,6 +83,19 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
+  // Auto-dirty tracking
+  useEffect(() => {
+    setIsBoardDirty(JSON.stringify(localBoardSpaces) !== JSON.stringify(boardSpaces));
+  }, [localBoardSpaces, boardSpaces]);
+
+  useEffect(() => {
+    setIsPropertiesDirty(JSON.stringify(localProperties) !== JSON.stringify(properties));
+  }, [localProperties, properties]);
+
+  useEffect(() => {
+    setIsTitleDirty(localTitle.trim() !== gameTitle);
+  }, [localTitle, gameTitle]);
+
   const addProperty = () => {
     if (newProperty.name) {
       const property: PropertyCard = {
