@@ -38,7 +38,7 @@ interface BoardSpace {
   rent?: number;
   ownerId?: string; // ID of player who owns this property
   actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
-  svgUrl?: string; // Optional SVG image URL
+  svgXml?: string; // Optional inline SVG XML
 }
 
 interface GameBoardProps {
@@ -493,23 +493,20 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               style={propertyOwner ? ownerBorderStyle : {}}
               onClick={() => handleSpaceClick(space)}
             >
-              {!space.svgUrl && space.type === 'property' && space.color && (
+              {!space.svgXml && space.type === 'property' && space.color && (
                 <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
               )}
               
-              {space.type === 'action' && !space.svgUrl && (
+              {space.type === 'action' && !space.svgXml && (
                 <div className="h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-sm animate-pulse" />
               )}
               
               <div className="flex-1 flex flex-col justify-center items-center text-center overflow-hidden">
-                {space.svgUrl ? (
+                {space.svgXml ? (
                   <>
-                    <img
-                      src={space.svgUrl}
-                      alt={`${space.name} svg`}
-                      className="max-h-10 w-auto"
-                      loading="lazy"
-                    />
+                    <div className="max-h-10 w-full flex items-center justify-center overflow-hidden">
+                      <div className="h-10" dangerouslySetInnerHTML={{ __html: space.svgXml }} />
+                    </div>
                     {space.price && (
                       <div className="text-primary font-bold text-xs mt-1">${space.price}</div>
                     )}

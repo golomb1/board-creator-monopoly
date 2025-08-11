@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Plus, Trash2, Edit, Save, Home, Building, Check, Loader2, Upload, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PropertyCard {
   id: string;
@@ -27,7 +28,7 @@ interface BoardSpace {
   price?: number;
   rent?: number;
   actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
-  svgUrl?: string; // Optional SVG image URL for board rendering
+  svgXml?: string; // Optional inline SVG XML for board rendering
 }
 
 interface GameSettingsProps {
@@ -756,21 +757,22 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                               )}
                               
                               <div>
-                                <Label htmlFor={`svg-${space.id}`}>SVG URL (optional)</Label>
-                                <Input
+                                <Label htmlFor={`svg-${space.id}`}>SVG XML (optional)</Label>
+                                <Textarea
                                   id={`svg-${space.id}`}
-                                  value={editingSpaceDraft?.svgUrl ?? space.svgUrl ?? ''}
-                                  onChange={(e) => setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), svgUrl: e.target.value })}
+                                  value={editingSpaceDraft?.svgXml ?? space.svgXml ?? ''}
+                                  onChange={(e) => setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), svgXml: e.target.value })}
                                   onBlur={() => {
-                                    if (editingSpaceDraft?.svgUrl !== undefined) {
-                                      updateSpace(space.id, { svgUrl: editingSpaceDraft.svgUrl as string });
+                                    if (editingSpaceDraft?.svgXml !== undefined) {
+                                      updateSpace(space.id, { svgXml: editingSpaceDraft.svgXml as string });
                                     }
                                   }}
-                                  placeholder="https://example.com/icon.svg"
-                                  className="text-sm"
+                                  placeholder="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>...</svg>"
+                                  className="text-xs font-mono"
+                                  rows={4}
                                 />
-                                {(editingSpaceDraft?.svgUrl ?? space.svgUrl) ? (
-                                  <img src={(editingSpaceDraft?.svgUrl ?? space.svgUrl) as string} alt={`${space.name} SVG preview`} className="h-8 mt-2" loading="lazy" />
+                                {(editingSpaceDraft?.svgXml ?? space.svgXml) ? (
+                                  <div className="h-8 mt-2 overflow-hidden" dangerouslySetInnerHTML={{ __html: (editingSpaceDraft?.svgXml ?? space.svgXml) as string }} />
                                 ) : null}
                               </div>
                               <Button size="sm" onClick={() => { 

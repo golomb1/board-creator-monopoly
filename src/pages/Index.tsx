@@ -38,7 +38,7 @@ interface BoardSpace {
   color?: string;
   price?: number;
   rent?: number;
-  svgUrl?: string; // Optional SVG image URL to display on the board
+  svgXml?: string; // Optional inline SVG XML to display on the board
   ownerId?: string; // ID of player who owns this property
   actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
 }
