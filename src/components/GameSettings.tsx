@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Plus, Trash2, Edit, Save, Home, Building } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit, Save, Home, Building, Check, Loader2, Upload, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PropertyCard {
   id: string;
@@ -34,6 +35,8 @@ interface GameSettingsProps {
   boardSpaces: BoardSpace[];
   onSaveProperties: (properties: PropertyCard[]) => void;
   onSaveBoardSpaces: (spaces: BoardSpace[]) => void;
+  gameTitle: string;
+  onSaveGameTitle: (title: string) => void;
 }
 
 const propertyColors = [
@@ -47,7 +50,7 @@ const propertyColors = [
   { value: 'blue', label: 'Blue', color: 'bg-property-blue' },
 ];
 
-const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces }: GameSettingsProps) => {
+const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces, gameTitle, onSaveGameTitle }: GameSettingsProps) => {
   const [localProperties, setLocalProperties] = useState<PropertyCard[]>(properties);
   const [localBoardSpaces, setLocalBoardSpaces] = useState<BoardSpace[]>(boardSpaces);
   const [editingProperty, setEditingProperty] = useState<string | null>(null);
@@ -68,6 +71,15 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
   });
   const [editingPropertyDraft, setEditingPropertyDraft] = useState<Partial<PropertyCard> | null>(null);
   const [editingSpaceDraft, setEditingSpaceDraft] = useState<Partial<BoardSpace> | null>(null);
+  const [localTitle, setLocalTitle] = useState<string>(gameTitle);
+  const [isPropertiesDirty, setIsPropertiesDirty] = useState(false);
+  const [isBoardDirty, setIsBoardDirty] = useState(false);
+  const [isTitleDirty, setIsTitleDirty] = useState(false);
+  const [isSavingProperties, setIsSavingProperties] = useState(false);
+  const [isSavingBoard, setIsSavingBoard] = useState(false);
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { toast } = useToast();
 
   const addProperty = () => {
     if (newProperty.name) {
@@ -190,6 +202,46 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
           </h1>
         </div>
 
+        {/* General Settings */}
+        <Card variant="property" className="mb-6">
+          <CardHeader>
+            <CardTitle>General</CardTitle>
+            <CardDescription>Set game-wide preferences</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="md:col-span-2">
+              <Label htmlFor="game-title">Game Title</Label>
+              <Input id="game-title" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} placeholder="Enter game title" />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => {
+                  setIsSavingTitle(true);
+                  onSaveGameTitle(localTitle);
+                  setTimeout(() => {
+                    setIsSavingTitle(false);
+                    toast({ title: "Title Saved", description: `Game title set to ${localTitle}` });
+                  }, 600);
+                }}
+                variant="default"
+                disabled={!isTitleDirty || isSavingTitle}
+              >
+                {isSavingTitle ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Title
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="properties" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="properties" className="flex items-center gap-2">
@@ -289,9 +341,29 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
               <CardHeader>
                 <CardTitle>Property Cards ({localProperties.length})</CardTitle>
                 <div className="flex gap-2">
-                  <Button onClick={() => onSaveProperties(localProperties)} variant="default">
-                    <Save className="w-4 h-4" />
-                    Save Properties
+                  <Button 
+                    onClick={() => {
+                      setIsSavingProperties(true);
+                      onSaveProperties(localProperties);
+                      setTimeout(() => {
+                        setIsSavingProperties(false);
+                        toast({ title: "Properties Saved", description: `${localProperties.length} properties saved` });
+                      }, 700);
+                    }} 
+                    variant="default"
+                    disabled={!isPropertiesDirty || isSavingProperties}
+                  >
+                    {isSavingProperties ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Properties
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>
@@ -512,13 +584,77 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
             <Card variant="property">
               <CardHeader>
                 <CardTitle>Board Layout ({localBoardSpaces.length} spaces)</CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/json"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        const data = JSON.parse(text);
+                        if (!Array.isArray(data)) throw new Error("Invalid JSON");
+                        setLocalBoardSpaces(data as BoardSpace[]);
+                        toast({ title: "Board Imported", description: `Loaded ${data.length} spaces` });
+                      } catch (err) {
+                        toast({ title: "Import Failed", description: "Invalid board JSON", variant: "destructive" });
+                      } finally {
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }
+                    }}
+                  />
                   <Button onClick={generateDefaultBoard} variant="secondary">
                     Generate Default Board
                   </Button>
-                  <Button onClick={() => onSaveBoardSpaces(localBoardSpaces)} variant="default">
-                    <Save className="w-4 h-4" />
-                    Save Board Layout
+                  <Button
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify(localBoardSpaces, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'board.json';
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast({ title: "Board Exported", description: "Downloaded board.json" });
+                    }}
+                    variant="outline"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export JSON
+                  </Button>
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Import JSON
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setIsSavingBoard(true);
+                      onSaveBoardSpaces(localBoardSpaces);
+                      setTimeout(() => {
+                        setIsSavingBoard(false);
+                        toast({ title: "Board Saved", description: `${localBoardSpaces.length} spaces saved` });
+                      }, 700);
+                    }} 
+                    variant="default"
+                    disabled={!isBoardDirty || isSavingBoard}
+                  >
+                    {isSavingBoard ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Board Layout
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>

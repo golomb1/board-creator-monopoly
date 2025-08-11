@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GameBoard from "@/components/GameBoard";
 import GameSettings from "@/components/GameSettings";
 
@@ -46,6 +46,11 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'game' | 'settings'>('game');
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
+  const [gameTitle, setGameTitle] = useState<string>('Custom Monopoly');
+
+  useEffect(() => {
+    document.title = `${gameTitle} - Board Game`;
+  }, [gameTitle]);
   
   // Default players
   const [players, setPlayers] = useState<Player[]>([
@@ -151,6 +156,8 @@ const Index = () => {
         boardSpaces={boardSpaces}
         onSaveProperties={handleSaveProperties}
         onSaveBoardSpaces={handleSaveBoardSpaces}
+        gameTitle={gameTitle}
+        onSaveGameTitle={setGameTitle}
       />
     );
   }
@@ -167,6 +174,7 @@ const Index = () => {
       onNextPlayer={nextPlayer}
       onUpdateBoardSpaces={handleUpdateBoardSpaces}
       onUpdateBuyRequests={setBuyRequests}
+      gameTitle={gameTitle}
     />
   );
 };

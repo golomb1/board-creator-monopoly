@@ -51,11 +51,12 @@ interface GameBoardProps {
   onNextPlayer: () => void;
   onUpdateBoardSpaces: (spaces: BoardSpace[]) => void;
   onUpdateBuyRequests: (requests: BuyRequest[]) => void;
+  gameTitle: string;
 }
 
 type TurnPhase = 'roll' | 'actions' | 'ended';
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests }: GameBoardProps) => {
+const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests, gameTitle }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
@@ -554,7 +555,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Custom Monopoly
+            {gameTitle}
           </h1>
           <Button variant="game" onClick={onOpenSettings}>
             <Settings className="w-4 h-4" />
