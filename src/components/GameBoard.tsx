@@ -38,6 +38,7 @@ interface BoardSpace {
   rent?: number;
   ownerId?: string; // ID of player who owns this property
   actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
+  svgUrl?: string; // Optional SVG image URL
 }
 
 interface GameBoardProps {
@@ -492,29 +493,44 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               style={propertyOwner ? ownerBorderStyle : {}}
               onClick={() => handleSpaceClick(space)}
             >
-              {space.type === 'property' && space.color && (
+              {!space.svgUrl && space.type === 'property' && space.color && (
                 <div className={`h-2 ${getPropertyColor(space)} rounded-sm`} />
               )}
               
-              {space.type === 'action' && (
+              {space.type === 'action' && !space.svgUrl && (
                 <div className="h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-sm animate-pulse" />
               )}
               
-              <div className="flex-1 flex flex-col justify-center text-center overflow-hidden">
-                <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
-                {space.price && (
-                  <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
-                )}
-                {space.type === 'action' && space.actionEffect && (
-                  <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">
-                    {space.actionEffect === 'go-to-jail' ? '🚨' : 
-                     space.actionEffect === 'skip-turn' ? '⏸️' : '🎉'}
-                  </div>
-                )}
-                {propertyOwner && (
-                  <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
-                    {propertyOwner.name}
-                  </div>
+              <div className="flex-1 flex flex-col justify-center items-center text-center overflow-hidden">
+                {space.svgUrl ? (
+                  <>
+                    <img
+                      src={space.svgUrl}
+                      alt={`${space.name} svg`}
+                      className="max-h-10 w-auto"
+                      loading="lazy"
+                    />
+                    {space.price && (
+                      <div className="text-primary font-bold text-xs mt-1">${space.price}</div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
+                    {space.price && (
+                      <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
+                    )}
+                    {space.type === 'action' && space.actionEffect && (
+                      <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">
+                        {space.actionEffect === 'go-to-jail' ? '🚨' : space.actionEffect === 'skip-turn' ? '⏸️' : '🎉'}
+                      </div>
+                    )}
+                    {propertyOwner && (
+                      <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
+                        {propertyOwner.name}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

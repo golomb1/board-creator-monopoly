@@ -27,6 +27,7 @@ interface BoardSpace {
   price?: number;
   rent?: number;
   actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
+  svgUrl?: string; // Optional SVG image URL for board rendering
 }
 
 interface GameSettingsProps {
@@ -754,6 +755,24 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 </Select>
                               )}
                               
+                              <div>
+                                <Label htmlFor={`svg-${space.id}`}>SVG URL (optional)</Label>
+                                <Input
+                                  id={`svg-${space.id}`}
+                                  value={editingSpaceDraft?.svgUrl ?? space.svgUrl ?? ''}
+                                  onChange={(e) => setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), svgUrl: e.target.value })}
+                                  onBlur={() => {
+                                    if (editingSpaceDraft?.svgUrl !== undefined) {
+                                      updateSpace(space.id, { svgUrl: editingSpaceDraft.svgUrl as string });
+                                    }
+                                  }}
+                                  placeholder="https://example.com/icon.svg"
+                                  className="text-sm"
+                                />
+                                {(editingSpaceDraft?.svgUrl ?? space.svgUrl) ? (
+                                  <img src={(editingSpaceDraft?.svgUrl ?? space.svgUrl) as string} alt={`${space.name} SVG preview`} className="h-8 mt-2" loading="lazy" />
+                                ) : null}
+                              </div>
                               <Button size="sm" onClick={() => { 
                                 if (editingSpaceDraft) updateSpace(space.id, editingSpaceDraft);
                                 setEditingSpace(null);
