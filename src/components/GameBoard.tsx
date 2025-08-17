@@ -635,7 +635,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
               )}
               
               {space.type === 'action' && !space.svgXml && (
-                <div className="h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-sm animate-pulse" />
+                <div className="h-2 bg-muted rounded-sm" />
               )}
               
               <div className="flex-1 flex flex-col justify-center items-center text-center overflow-hidden">
@@ -662,12 +662,12 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                     {space.price && space.type === 'property' && (
                       <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
                     )}
-                    {space.type === 'action' && (
-                      <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">🎲</div>
-                    )}
-                    {space.type === 'question' && (
-                      <div className="text-blue-600 font-bold text-xs truncate whitespace-normal">❓</div>
-                    )}
+                     {space.type === 'action' && (
+                       <div className="text-foreground font-bold text-xs truncate whitespace-normal">🎲</div>
+                     )}
+                     {space.type === 'question' && (
+                       <div className="text-foreground font-bold text-xs truncate whitespace-normal">❓</div>
+                     )}
                     {propertyOwner && (
                       <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
                         {propertyOwner.name}
