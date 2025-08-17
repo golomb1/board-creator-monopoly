@@ -117,33 +117,26 @@ const Index = () => {
 
   // Default properties - Cloud Services by CSP
   const [properties, setProperties] = useState<PropertyCard[]>([
-    // Azure Services (Blue theme)
+    // Azure Services
     { id: '1', name: 'Azure Blob Storage', color: 'azure', price: 60, rent: 8, description: 'Object storage for cloud applications' },
     { id: '3', name: 'Azure Virtual Machines', color: 'azure', price: 100, rent: 12, description: 'Scalable computing in the cloud' },
     { id: '6', name: 'Azure SQL Database', color: 'azure', price: 140, rent: 18, description: 'Managed relational database service' },
     { id: '8', name: 'Azure Virtual Network', color: 'azure', price: 180, rent: 24, description: 'Private network in Azure' },
     { id: '11', name: 'Azure Key Vault', color: 'azure', price: 220, rent: 30, description: 'Secure key and secret management' },
     
-    // AWS Services (Orange theme)
+    // AWS Services
     { id: '13', name: 'Amazon S3', color: 'aws', price: 60, rent: 8, description: 'Scalable object storage' },
     { id: '14', name: 'Amazon EC2', color: 'aws', price: 100, rent: 12, description: 'Elastic compute cloud instances' },
     { id: '16', name: 'Amazon RDS', color: 'aws', price: 140, rent: 18, description: 'Managed relational database' },
     { id: '18', name: 'Amazon VPC', color: 'aws', price: 180, rent: 24, description: 'Virtual private cloud networking' },
     { id: '21', name: 'AWS IAM', color: 'aws', price: 220, rent: 30, description: 'Identity and access management' },
     
-    // GCP Services (Red theme)
+    // GCP Services
     { id: '23', name: 'Cloud Storage', color: 'gcp', price: 60, rent: 8, description: 'Unified object storage' },
     { id: '24', name: 'Compute Engine', color: 'gcp', price: 100, rent: 12, description: 'Virtual machines on Google Cloud' },
     { id: '26', name: 'Cloud SQL', color: 'gcp', price: 140, rent: 18, description: 'Fully managed relational database' },
     { id: '27', name: 'VPC Network', color: 'gcp', price: 180, rent: 24, description: 'Global virtual private cloud' },
     { id: '29', name: 'Cloud Security', color: 'gcp', price: 220, rent: 30, description: 'Security and compliance tools' },
-    
-    // Premium Services (Blue - High-end)
-    { id: '31', name: 'Azure Kubernetes Service', color: 'premium', price: 300, rent: 40, description: 'Managed Kubernetes container service' },
-    { id: '32', name: 'Amazon EKS', color: 'premium', price: 300, rent: 40, description: 'Elastic Kubernetes Service' },
-    { id: '34', name: 'Google Kubernetes Engine', color: 'premium', price: 320, rent: 45, description: 'Managed Kubernetes on GCP' },
-    { id: '37', name: 'Azure AI Services', color: 'luxury', price: 350, rent: 50, description: 'Enterprise AI and ML platform' },
-    { id: '39', name: 'Google Cloud AI', color: 'luxury', price: 400, rent: 60, description: 'Advanced AI and machine learning' },
   ]);
 
   // Default board spaces - Cloud Services focused
@@ -179,15 +172,15 @@ const Index = () => {
     { id: '28', name: 'Action Card', type: 'action' },
     { id: '29', name: 'Cloud Security', type: 'property', color: 'gcp', price: 220, rent: 30 },
     { id: '30', name: 'System Outage', type: 'corner' },
-    { id: '31', name: 'Azure Kubernetes Service', type: 'property', color: 'premium', price: 300, rent: 40 },
-    { id: '32', name: 'Amazon EKS', type: 'property', color: 'premium', price: 300, rent: 40 },
+    { id: '31', name: 'Azure Kubernetes Service', type: 'property', color: 'azure', price: 300, rent: 40 },
+    { id: '32', name: 'Amazon EKS', type: 'property', color: 'aws', price: 300, rent: 40 },
     { id: '33', name: 'Question Card', type: 'question' },
-    { id: '34', name: 'Google Kubernetes Engine', type: 'property', color: 'premium', price: 320, rent: 45 },
+    { id: '34', name: 'Google Kubernetes Engine', type: 'property', color: 'gcp', price: 320, rent: 45 },
     { id: '35', name: 'Cloud Backbone', type: 'property', price: 200, rent: 25 },
     { id: '36', name: 'Action Card', type: 'action' },
-    { id: '37', name: 'Azure AI Services', type: 'property', color: 'luxury', price: 350, rent: 50 },
+    { id: '37', name: 'Azure AI Services', type: 'property', color: 'azure', price: 350, rent: 50 },
     { id: '38', name: 'Question Card', type: 'question' },
-    { id: '39', name: 'Google Cloud AI', type: 'property', color: 'luxury', price: 400, rent: 60 },
+    { id: '39', name: 'Google Cloud AI', type: 'property', color: 'gcp', price: 400, rent: 60 },
   ]);
 
   const getRandomCard = <T,>(cards: T[]): T => {

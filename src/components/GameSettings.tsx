@@ -46,8 +46,6 @@ const propertyColors = [
   { value: 'azure', label: 'Azure', color: 'bg-property-azure' },
   { value: 'aws', label: 'AWS', color: 'bg-property-aws' },
   { value: 'gcp', label: 'GCP', color: 'bg-property-gcp' },
-  { value: 'premium', label: 'Premium', color: 'bg-property-premium' },
-  { value: 'luxury', label: 'Luxury', color: 'bg-property-luxury' },
 ];
 
 const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces, gameTitle, onSaveGameTitle, numberOfPlayers, onSaveNumberOfPlayers }: GameSettingsProps) => {
@@ -55,11 +53,11 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
   const [localBoardSpaces, setLocalBoardSpaces] = useState<BoardSpace[]>(boardSpaces);
   const [editingProperty, setEditingProperty] = useState<string | null>(null);
   const [newProperty, setNewProperty] = useState<Partial<PropertyCard>>({
-    name: '',
-    color: 'brown',
+    name: 'Azure Blob Storage',
+    color: 'azure',
     price: 100,
     rent: 10,
-    description: ''
+    description: 'Object storage for cloud applications'
   });
   const [editingSpace, setEditingSpace] = useState<string | null>(null);
   const [newSpace, setNewSpace] = useState<Partial<BoardSpace>>({
@@ -106,7 +104,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
         description: newProperty.description!
       };
       setLocalProperties([...localProperties, property]);
-      setNewProperty({ name: '', color: 'brown', price: 100, rent: 10, description: '' });
+      setNewProperty({ name: 'Azure Blob Storage', color: 'azure', price: 100, rent: 10, description: 'Object storage for cloud applications' });
     }
   };
 
@@ -133,7 +131,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
         }),
       };
       setLocalBoardSpaces([...localBoardSpaces, space]);
-      setNewSpace({ name: '', type: 'property', color: 'brown', price: 100, rent: 10 });
+      setNewSpace({ name: '', type: 'property', color: 'azure', price: 100, rent: 10 });
     }
   };
 

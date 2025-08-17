@@ -59,9 +59,7 @@ export default {
 				property: {
 					azure: 'hsl(var(--property-azure))',
 					aws: 'hsl(var(--property-aws))',
-					gcp: 'hsl(var(--property-gcp))',
-					premium: 'hsl(var(--property-premium))',
-					luxury: 'hsl(var(--property-luxury))'
+					gcp: 'hsl(var(--property-gcp))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

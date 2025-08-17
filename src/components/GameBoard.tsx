@@ -550,8 +550,6 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       azure: 'bg-property-azure',
       aws: 'bg-property-aws',
       gcp: 'bg-property-gcp',
-      premium: 'bg-property-premium',
-      luxury: 'bg-property-luxury',
     };
     return colorMap[space.color || ''] || 'bg-muted';
   };
