@@ -9,6 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import DiceRoller from "./DiceRoller";
 
+// Import AWS Icons
+import S3Icon from "@/assets/aws/s3.svg";
+import EC2Icon from "@/assets/aws/ec2.svg";
+import RDSIcon from "@/assets/aws/rds.svg";
+import VPCIcon from "@/assets/aws/vpc.svg";
+import IAMIcon from "@/assets/aws/iam.svg";
+import LambdaIcon from "@/assets/aws/lambda.svg";
+import EKSIcon from "@/assets/aws/eks.svg";
+
 interface Player {
   id: string;
   name: string;
@@ -531,49 +540,55 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
     return colorMap[space.color || ''] || 'bg-muted';
   };
 
-  const getServiceIcon = (spaceName: string) => {
+  const getServiceIcon = (spaceName: string): string => {
     const iconMap: Record<string, string> = {
-      // Storage services
+      // AWS services with actual icons (return import paths as strings)
+      'Amazon S3': S3Icon,
+      'Amazon EC2': EC2Icon,
+      'Amazon RDS': RDSIcon,
+      'Amazon VPC': VPCIcon,
+      'AWS IAM': IAMIcon,
+      'AWS Lambda': LambdaIcon,
+      'Amazon EKS': EKSIcon,
+      
+      // Storage services (emojis for non-AWS)
       'Azure Blob Storage': '📦',
-      'Amazon S3': '🪣',
       'Cloud Storage': '☁️',
       
-      // Compute services
+      // Compute services (emojis for non-AWS)
       'Azure Virtual Machines': '🖥️',
-      'Amazon EC2': '⚡',
       'Compute Engine': '🔧',
-      'AWS Lambda': '⚡',
       'Azure Cache': '💾',
       
-      // Database services
+      // Database services (emojis for non-AWS)
       'Azure SQL Database': '🗄️',
-      'Amazon RDS': '📊',
       'Cloud SQL': '🎯',
       
-      // Networking services
+      // Networking services (emojis for non-AWS)
       'Azure Virtual Network': '🌐',
-      'Amazon VPC': '🔗',
       'VPC Network': '🌍',
       'Cloud Railroad': '🚄',
       'Edge Network': '📡',
       'Global CDN': '🌎',
       'Cloud Backbone': '🔗',
       
-      // Security services
+      // Security services (emojis for non-AWS)
       'Azure Key Vault': '🔐',
-      'AWS IAM': '🛡️',
       'Cloud Security': '🛡️',
       
-      // Container/Orchestration services
+      // Container/Orchestration services (emojis for non-AWS)
       'Azure Kubernetes Service': '🐳',
-      'Amazon EKS': '☸️',
       'Google Kubernetes Engine': '⚙️',
       
-      // AI/ML services
+      // AI/ML services (emojis for non-AWS)
       'Azure AI Services': '🤖',
       'Google Cloud AI': '🧠',
     };
     return iconMap[spaceName] || '⚙️';
+  };
+
+  const isAwsService = (spaceName: string): boolean => {
+    return spaceName.startsWith('Amazon ') || spaceName.startsWith('AWS ');
   };
 
   const renderBoardSpace = (space: BoardSpace | null, row: number, col: number) => {
@@ -624,7 +639,11 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 ) : (
                   <>
                     {space.type === 'property' ? (
-                      <div className="text-lg">{getServiceIcon(space.name)}</div>
+                      isAwsService(space.name) ? (
+                        <img src={getServiceIcon(space.name)} alt={space.name} className="w-6 h-6" />
+                      ) : (
+                        <div className="text-lg">{getServiceIcon(space.name)}</div>
+                      )
                     ) : (
                       <div className="font-medium text-xs truncate px-1 whitespace-normal text-center">{space.name}</div>
                     )}
