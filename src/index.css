@@ -31,12 +31,12 @@ All colors MUST be HSL.
     --muted: 220 15% 92%;
     --muted-foreground: 220 10% 45%;
 
-    /* Cloud Service Provider Colors */
-    --property-azure: 210 100% 50%;
-    --property-aws: 25 95% 53%;
-    --property-gcp: 4 90% 58%;
-    --property-premium: 220 91% 50%;
-    --property-luxury: 271 91% 65%;
+    /* Cloud Service Provider Colors - Authentic Brand Colors */
+    --property-azure: 209 100% 42%;         /* Microsoft Azure Blue #0078D4 */
+    --property-aws: 36 100% 50%;            /* AWS Orange #FF9900 */
+    --property-gcp: 220 90% 60%;            /* Google Cloud Blue #4285F4 */
+    --property-premium: 220 91% 65%;        /* Enhanced Blue for premium services */
+    --property-luxury: 271 91% 70%;         /* Purple for luxury AI/ML services */
 
     /* Game accents */
     --accent: 200 80% 65%;
