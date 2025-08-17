@@ -80,26 +80,65 @@ const initialSettings: GameSettings = {
   gameTitle: 'Custom Monopoly',
   numberOfPlayers: 4,
   properties: [
-    // Azure Services
+    // Azure Services - Storage
     { id: '1', name: 'Azure Blob Storage', color: 'azure', price: 60, rent: 8, description: 'Object storage for cloud applications' },
+    { id: '6', name: 'Azure File Storage', color: 'azure', price: 80, rent: 10, description: 'Fully managed file shares in the cloud' },
+    
+    // Azure Services - Compute
     { id: '3', name: 'Azure Virtual Machines', color: 'azure', price: 100, rent: 12, description: 'Scalable computing in the cloud' },
-    { id: '6', name: 'Azure SQL Database', color: 'azure', price: 140, rent: 18, description: 'Managed relational database service' },
-    { id: '8', name: 'Azure Virtual Network', color: 'azure', price: 180, rent: 24, description: 'Private network in Azure' },
-    { id: '11', name: 'Azure Key Vault', color: 'azure', price: 220, rent: 30, description: 'Secure key and secret management' },
+    { id: '31', name: 'Azure App Service', color: 'azure', price: 300, rent: 40, description: 'Platform for building web apps' },
+    { id: '37', name: 'Azure Functions', color: 'azure', price: 350, rent: 50, description: 'Serverless compute service' },
     
-    // AWS Services
+    // Azure Services - Database
+    { id: '8', name: 'Azure SQL Database', color: 'azure', price: 140, rent: 18, description: 'Managed relational database service' },
+    { id: '9', name: 'Azure Cosmos DB', color: 'azure', price: 200, rent: 26, description: 'Globally distributed NoSQL database' },
+    
+    // Azure Services - Networking
+    { id: '11', name: 'Azure Virtual Network', color: 'azure', price: 180, rent: 24, description: 'Private network in Azure' },
+    { id: '33', name: 'Azure Load Balancer', color: 'azure', price: 220, rent: 30, description: 'Distribute network traffic' },
+    
+    // Azure Services - Security
+    { id: '15', name: 'Azure Key Vault', color: 'azure', price: 160, rent: 20, description: 'Secure key and secret management' },
+    
+    // AWS Services - Storage
     { id: '13', name: 'Amazon S3', color: 'aws', price: 60, rent: 8, description: 'Scalable object storage' },
-    { id: '14', name: 'Amazon EC2', color: 'aws', price: 100, rent: 12, description: 'Elastic compute cloud instances' },
-    { id: '16', name: 'Amazon RDS', color: 'aws', price: 140, rent: 18, description: 'Managed relational database' },
-    { id: '18', name: 'Amazon VPC', color: 'aws', price: 180, rent: 24, description: 'Virtual private cloud networking' },
-    { id: '21', name: 'AWS IAM', color: 'aws', price: 220, rent: 30, description: 'Identity and access management' },
+    { id: '19', name: 'Amazon EBS', color: 'aws', price: 80, rent: 10, description: 'Block storage for EC2 instances' },
     
-    // GCP Services
+    // AWS Services - Compute
+    { id: '14', name: 'Amazon EC2', color: 'aws', price: 100, rent: 12, description: 'Elastic compute cloud instances' },
+    { id: '32', name: 'AWS Lambda', color: 'aws', price: 300, rent: 40, description: 'Serverless compute service' },
+    { id: '35', name: 'AWS Elastic Beanstalk', color: 'aws', price: 350, rent: 50, description: 'Easy application deployment' },
+    
+    // AWS Services - Database
+    { id: '16', name: 'Amazon RDS', color: 'aws', price: 140, rent: 18, description: 'Managed relational database' },
+    { id: '22', name: 'Amazon DynamoDB', color: 'aws', price: 200, rent: 26, description: 'NoSQL database service' },
+    
+    // AWS Services - Networking
+    { id: '18', name: 'Amazon VPC', color: 'aws', price: 180, rent: 24, description: 'Virtual private cloud networking' },
+    { id: '25', name: 'Amazon CloudFront', color: 'aws', price: 220, rent: 30, description: 'Content delivery network' },
+    
+    // AWS Services - Security
+    { id: '21', name: 'AWS IAM', color: 'aws', price: 160, rent: 20, description: 'Identity and access management' },
+    
+    // GCP Services - Storage
     { id: '23', name: 'Cloud Storage', color: 'gcp', price: 60, rent: 8, description: 'Unified object storage' },
+    { id: '27', name: 'Persistent Disk', color: 'gcp', price: 80, rent: 10, description: 'Block storage for VMs' },
+    
+    // GCP Services - Compute
     { id: '24', name: 'Compute Engine', color: 'gcp', price: 100, rent: 12, description: 'Virtual machines on Google Cloud' },
+    { id: '34', name: 'Cloud Functions', color: 'gcp', price: 300, rent: 40, description: 'Event-driven serverless functions' },
+    { id: '39', name: 'App Engine', color: 'gcp', price: 400, rent: 60, description: 'Platform for building apps' },
+    
+    // GCP Services - Database
     { id: '26', name: 'Cloud SQL', color: 'gcp', price: 140, rent: 18, description: 'Fully managed relational database' },
-    { id: '27', name: 'VPC Network', color: 'gcp', price: 180, rent: 24, description: 'Global virtual private cloud' },
-    { id: '29', name: 'Cloud Security', color: 'gcp', price: 220, rent: 30, description: 'Security and compliance tools' },
+    { id: '28', name: 'Firestore', color: 'gcp', price: 200, rent: 26, description: 'NoSQL document database' },
+    
+    // GCP Services - Networking
+    { id: '29', name: 'VPC Network', color: 'gcp', price: 180, rent: 24, description: 'Global virtual private cloud' },
+    { id: '36', name: 'Cloud Load Balancing', color: 'gcp', price: 220, rent: 30, description: 'Global load balancing service' },
+    
+    // GCP Services - Security
+    { id: '38', name: 'Cloud KMS', color: 'gcp', price: 160, rent: 20, description: 'Key management service' },
   ],
   boardSpaces: [
     { id: '0', name: 'START', type: 'corner' },
@@ -107,41 +146,41 @@ const initialSettings: GameSettings = {
     { id: '2', name: 'Question Card', type: 'question' },
     { id: '3', name: 'Azure Virtual Machines', type: 'property', color: 'azure', price: 100, rent: 12 },
     { id: '4', name: 'Action Card', type: 'action' },
-    { id: '5', name: 'Cloud Railroad', type: 'property', price: 200, rent: 25 },
+    { id: '5', name: 'Azure File Storage', type: 'property', color: 'azure', price: 80, rent: 10 },
     { id: '6', name: 'Azure SQL Database', type: 'property', color: 'azure', price: 140, rent: 18 },
     { id: '7', name: 'Action Card', type: 'action' },
     { id: '8', name: 'Azure Virtual Network', type: 'property', color: 'azure', price: 180, rent: 24 },
-    { id: '9', name: 'Azure Cache', type: 'property', color: 'azure', price: 200, rent: 26 },
+    { id: '9', name: 'Azure Cosmos DB', type: 'property', color: 'azure', price: 200, rent: 26 },
     { id: '10', name: 'Security Audit', type: 'jail' },
-    { id: '11', name: 'Azure Key Vault', type: 'property', color: 'azure', price: 220, rent: 30 },
+    { id: '11', name: 'Azure Key Vault', type: 'property', color: 'azure', price: 160, rent: 20 },
     { id: '12', name: 'Question Card', type: 'question' },
     { id: '13', name: 'Amazon S3', type: 'property', color: 'aws', price: 60, rent: 8 },
     { id: '14', name: 'Amazon EC2', type: 'property', color: 'aws', price: 100, rent: 12 },
-    { id: '15', name: 'Edge Network', type: 'property', price: 200, rent: 25 },
+    { id: '15', name: 'Azure Load Balancer', type: 'property', color: 'azure', price: 220, rent: 30 },
     { id: '16', name: 'Amazon RDS', type: 'property', color: 'aws', price: 140, rent: 18 },
     { id: '17', name: 'Action Card', type: 'action' },
     { id: '18', name: 'Amazon VPC', type: 'property', color: 'aws', price: 180, rent: 24 },
-    { id: '19', name: 'AWS Lambda', type: 'property', color: 'aws', price: 200, rent: 26 },
+    { id: '19', name: 'Amazon EBS', type: 'property', color: 'aws', price: 80, rent: 10 },
     { id: '20', name: 'Free Credits', type: 'corner' },
-    { id: '21', name: 'AWS IAM', type: 'property', color: 'aws', price: 220, rent: 30 },
-    { id: '22', name: 'Question Card', type: 'question' },
+    { id: '21', name: 'AWS IAM', type: 'property', color: 'aws', price: 160, rent: 20 },
+    { id: '22', name: 'Amazon DynamoDB', type: 'property', color: 'aws', price: 200, rent: 26 },
     { id: '23', name: 'Cloud Storage', type: 'property', color: 'gcp', price: 60, rent: 8 },
     { id: '24', name: 'Compute Engine', type: 'property', color: 'gcp', price: 100, rent: 12 },
-    { id: '25', name: 'Global CDN', type: 'property', price: 200, rent: 25 },
+    { id: '25', name: 'Amazon CloudFront', type: 'property', color: 'aws', price: 220, rent: 30 },
     { id: '26', name: 'Cloud SQL', type: 'property', color: 'gcp', price: 140, rent: 18 },
-    { id: '27', name: 'VPC Network', type: 'property', color: 'gcp', price: 180, rent: 24 },
-    { id: '28', name: 'Action Card', type: 'action' },
-    { id: '29', name: 'Cloud Security', type: 'property', color: 'gcp', price: 220, rent: 30 },
+    { id: '27', name: 'Persistent Disk', type: 'property', color: 'gcp', price: 80, rent: 10 },
+    { id: '28', name: 'Firestore', type: 'property', color: 'gcp', price: 200, rent: 26 },
+    { id: '29', name: 'VPC Network', type: 'property', color: 'gcp', price: 180, rent: 24 },
     { id: '30', name: 'System Outage', type: 'corner' },
-    { id: '31', name: 'Azure Kubernetes Service', type: 'property', color: 'azure', price: 300, rent: 40 },
-    { id: '32', name: 'Amazon EKS', type: 'property', color: 'aws', price: 300, rent: 40 },
+    { id: '31', name: 'Azure App Service', type: 'property', color: 'azure', price: 300, rent: 40 },
+    { id: '32', name: 'AWS Lambda', type: 'property', color: 'aws', price: 300, rent: 40 },
     { id: '33', name: 'Question Card', type: 'question' },
-    { id: '34', name: 'Google Kubernetes Engine', type: 'property', color: 'gcp', price: 320, rent: 45 },
-    { id: '35', name: 'Cloud Backbone', type: 'property', price: 200, rent: 25 },
-    { id: '36', name: 'Action Card', type: 'action' },
-    { id: '37', name: 'Azure AI Services', type: 'property', color: 'azure', price: 350, rent: 50 },
-    { id: '38', name: 'Question Card', type: 'question' },
-    { id: '39', name: 'Google Cloud AI', type: 'property', color: 'gcp', price: 400, rent: 60 },
+    { id: '34', name: 'Cloud Functions', type: 'property', color: 'gcp', price: 300, rent: 40 },
+    { id: '35', name: 'AWS Elastic Beanstalk', type: 'property', color: 'aws', price: 350, rent: 50 },
+    { id: '36', name: 'Cloud Load Balancing', type: 'property', color: 'gcp', price: 220, rent: 30 },
+    { id: '37', name: 'Azure Functions', type: 'property', color: 'azure', price: 350, rent: 50 },
+    { id: '38', name: 'Cloud KMS', type: 'property', color: 'gcp', price: 160, rent: 20 },
+    { id: '39', name: 'App Engine', type: 'property', color: 'gcp', price: 400, rent: 60 },
   ],
   questionCards: [
     { id: 'q1', question: 'What is 2 + 2?', options: ['3', '4', '5', '6'], correctAnswer: 1, reward: 100, penalty: 50 },
