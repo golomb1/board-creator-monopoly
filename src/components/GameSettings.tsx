@@ -38,6 +38,8 @@ interface GameSettingsProps {
   onSaveBoardSpaces: (spaces: BoardSpace[]) => void;
   gameTitle: string;
   onSaveGameTitle: (title: string) => void;
+  numberOfPlayers: number;
+  onSaveNumberOfPlayers: (count: number) => void;
 }
 
 const propertyColors = [
@@ -51,7 +53,7 @@ const propertyColors = [
   { value: 'blue', label: 'Blue', color: 'bg-property-blue' },
 ];
 
-const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces, gameTitle, onSaveGameTitle }: GameSettingsProps) => {
+const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces, gameTitle, onSaveGameTitle, numberOfPlayers, onSaveNumberOfPlayers }: GameSettingsProps) => {
   const [localProperties, setLocalProperties] = useState<PropertyCard[]>(properties);
   const [localBoardSpaces, setLocalBoardSpaces] = useState<BoardSpace[]>(boardSpaces);
   const [editingProperty, setEditingProperty] = useState<string | null>(null);
@@ -217,14 +219,43 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
         {/* General Settings */}
         <Card variant="property" className="mb-6">
           <CardHeader>
-            <CardTitle>General</CardTitle>
+            <CardTitle>Game Configuration</CardTitle>
             <CardDescription>Set game-wide preferences</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div className="md:col-span-2">
-              <Label htmlFor="game-title">Game Title</Label>
-              <Input id="game-title" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} placeholder="Enter game title" />
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="game-title">Game Title</Label>
+                <Input 
+                  id="game-title" 
+                  value={localTitle} 
+                  onChange={(e) => setLocalTitle(e.target.value)} 
+                  placeholder="Enter game title" 
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="number-of-players">Number of Players</Label>
+                <Select 
+                  value={numberOfPlayers.toString()} 
+                  onValueChange={(value) => onSaveNumberOfPlayers(parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">2 Players</SelectItem>
+                    <SelectItem value="3">3 Players</SelectItem>
+                    <SelectItem value="4">4 Players</SelectItem>
+                    <SelectItem value="5">5 Players</SelectItem>
+                    <SelectItem value="6">6 Players</SelectItem>
+                    <SelectItem value="7">7 Players</SelectItem>
+                    <SelectItem value="8">8 Players</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            
             <div className="flex gap-2">
               <Button
                 onClick={() => {

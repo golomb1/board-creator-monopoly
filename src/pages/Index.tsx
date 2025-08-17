@@ -64,6 +64,7 @@ const Index = () => {
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [buyRequests, setBuyRequests] = useState<BuyRequest[]>([]);
   const [gameTitle, setGameTitle] = useState<string>('Custom Monopoly');
+  const [numberOfPlayers, setNumberOfPlayers] = useState<number>(4);
 
   // Question cards deck
   const [questionCards] = useState<QuestionCard[]>([
@@ -90,13 +91,29 @@ const Index = () => {
     document.title = `${gameTitle} - Board Game`;
   }, [gameTitle]);
   
+  
+  // Generate players based on numberOfPlayers
+  const generatePlayers = (count: number): Player[] => {
+    const playerColors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#e67e22', '#1abc9c', '#34495e'];
+    const players: Player[] = [];
+    
+    for (let i = 0; i < count; i++) {
+      players.push({
+        id: (i + 1).toString(),
+        name: `Player ${i + 1}`,
+        color: playerColors[i] || '#95a5a6', // fallback color if more than 8 players
+        position: 0,
+        money: 1500,
+        lockedMoney: 0,
+        properties: []
+      });
+    }
+    
+    return players;
+  };
+
   // Default players
-  const [players, setPlayers] = useState<Player[]>([
-    { id: '1', name: 'Player 1', color: '#e74c3c', position: 0, money: 1500, lockedMoney: 0, properties: [] },
-    { id: '2', name: 'Player 2', color: '#3498db', position: 0, money: 1500, lockedMoney: 0, properties: [] },
-    { id: '3', name: 'Player 3', color: '#2ecc71', position: 0, money: 1500, lockedMoney: 0, properties: [] },
-    { id: '4', name: 'Player 4', color: '#f39c12', position: 0, money: 1500, lockedMoney: 0, properties: [] },
-  ]);
+  const [players, setPlayers] = useState<Player[]>(generatePlayers(numberOfPlayers));
 
   // Default properties
   const [properties, setProperties] = useState<PropertyCard[]>([
@@ -182,6 +199,14 @@ const Index = () => {
     console.log('Board spaces saved:', newSpaces.length);
   };
 
+  const handleSaveNumberOfPlayers = (count: number) => {
+    setNumberOfPlayers(count);
+    setPlayers(generatePlayers(count));
+    setCurrentPlayer(0); // Reset to first player
+    setBuyRequests([]); // Clear any existing requests
+    console.log('Number of players updated:', count);
+  };
+
   const nextPlayer = () => {
     setCurrentPlayer((prev) => (prev + 1) % players.length);
   };
@@ -200,6 +225,8 @@ const Index = () => {
         onSaveBoardSpaces={handleSaveBoardSpaces}
         gameTitle={gameTitle}
         onSaveGameTitle={setGameTitle}
+        numberOfPlayers={numberOfPlayers}
+        onSaveNumberOfPlayers={handleSaveNumberOfPlayers}
       />
     );
   }
