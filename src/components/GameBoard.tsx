@@ -29,15 +29,31 @@ interface BuyRequest {
   createdAt: number;
 }
 
+interface QuestionCard {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  reward: number;
+  penalty: number;
+}
+
+interface ActionCard {
+  id: string;
+  title: string;
+  description: string;
+  effect: 'go-to-jail' | 'skip-turn' | 'extra-turn' | 'collect-money' | 'pay-money' | 'advance-spaces';
+  value?: number;
+}
+
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'action' | 'corner' | 'jail';
+  type: 'property' | 'action' | 'question' | 'corner' | 'jail';
   color?: string;
   price?: number;
   rent?: number;
   ownerId?: string; // ID of player who owns this property
-  actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
   svgXml?: string; // Optional inline SVG XML
 }
 
@@ -53,11 +69,14 @@ interface GameBoardProps {
   onUpdateBoardSpaces: (spaces: BoardSpace[]) => void;
   onUpdateBuyRequests: (requests: BuyRequest[]) => void;
   gameTitle: string;
+  questionCards: QuestionCard[];
+  actionCards: ActionCard[];
+  getRandomCard: <T>(cards: T[]) => T;
 }
 
 type TurnPhase = 'roll' | 'actions' | 'ended';
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests, gameTitle }: GameBoardProps) => {
+const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests, gameTitle, questionCards, actionCards, getRandomCard }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
@@ -71,6 +90,10 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
   const [selectedSpaceDetails, setSelectedSpaceDetails] = useState<BoardSpace | null>(null);
   const [isSpaceDetailsOpen, setIsSpaceDetailsOpen] = useState(false);
   const [skipNextTurn, setSkipNextTurn] = useState<string[]>([]); // Players who skip next turn
+  const [currentQuestionCard, setCurrentQuestionCard] = useState<QuestionCard | null>(null);
+  const [currentActionCard, setCurrentActionCard] = useState<ActionCard | null>(null);
+  const [isQuestionOpen, setIsQuestionOpen] = useState(false);
+  const [isActionOpen, setIsActionOpen] = useState(false);
   const { toast } = useToast();
 
   // Board position mapping - clockwise from GO
@@ -127,16 +150,22 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       setTurnPhase('actions');
       onRollDice(total, dice1, dice2);
       
-      // Handle action space effects after moving
+      // Handle space effects after moving
       const newPosition = (players[currentPlayer].position + total) % 40;
       const landedSpace = boardSpaces[newPosition];
-      if (landedSpace?.type === 'action' && landedSpace.actionEffect) {
-        handleActionEffect(landedSpace.actionEffect, currentPlayerId);
+      if (landedSpace?.type === 'action') {
+        const randomActionCard = getRandomCard(actionCards);
+        setCurrentActionCard(randomActionCard);
+        setIsActionOpen(true);
+      } else if (landedSpace?.type === 'question') {
+        const randomQuestionCard = getRandomCard(questionCards);
+        setCurrentQuestionCard(randomQuestionCard);
+        setIsQuestionOpen(true);
       }
     }, 1000);
   };
 
-  const handleActionEffect = (effect: 'go-to-jail' | 'skip-turn' | 'extra-turn', playerId: string) => {
+  const handleActionEffect = (effect: 'go-to-jail' | 'skip-turn' | 'extra-turn' | 'collect-money' | 'pay-money' | 'advance-spaces', playerId: string, value?: number) => {
     const player = players.find(p => p.id === playerId);
     if (!player) return;
     
@@ -172,6 +201,40 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
         setTurnPhase('roll');
         setLastRoll(null);
         return; // Exit early to prevent normal turn end
+        
+      case 'collect-money':
+        const updatedPlayersCollect = players.map(p => 
+          p.id === playerId ? { ...p, money: p.money + (value || 0) } : p
+        );
+        onUpdatePlayers(updatedPlayersCollect);
+        toast({
+          title: "Money Collected!",
+          description: `${player.name} collected $${value || 0}`,
+        });
+        break;
+        
+      case 'pay-money':
+        const updatedPlayersPay = players.map(p => 
+          p.id === playerId ? { ...p, money: Math.max(0, p.money - (value || 0)) } : p
+        );
+        onUpdatePlayers(updatedPlayersPay);
+        toast({
+          title: "Money Paid",
+          description: `${player.name} paid $${value || 0}`,
+          variant: "destructive"
+        });
+        break;
+        
+      case 'advance-spaces':
+        const updatedPlayersAdvance = players.map(p => 
+          p.id === playerId ? { ...p, position: (p.position + (value || 0)) % 40 } : p
+        );
+        onUpdatePlayers(updatedPlayersAdvance);
+        toast({
+          title: "Advance Spaces",
+          description: `${player.name} advances ${value || 0} spaces`,
+        });
+        break;
     }
   };
 
@@ -373,10 +436,11 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
     }
     
     if (space.type === 'action') {
-      const effectText = space.actionEffect === 'go-to-jail' ? 'Sends you to jail immediately.' :
-                        space.actionEffect === 'skip-turn' ? 'You skip your next turn.' :
-                        space.actionEffect === 'extra-turn' ? 'Get an extra turn!' : '';
-      return `${space.name} - ${effectText}`;
+      return `${space.name} - Draw a random action card when you land here.`;
+    }
+    
+    if (space.type === 'question') {
+      return `${space.name} - Answer a question for a chance to earn money.`;
     }
     
     if (space.type === 'jail') {
@@ -521,10 +585,11 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                     {space.price && (
                       <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
                     )}
-                    {space.type === 'action' && space.actionEffect && (
-                      <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">
-                        {space.actionEffect === 'go-to-jail' ? '🚨' : space.actionEffect === 'skip-turn' ? '⏸️' : '🎉'}
-                      </div>
+                    {space.type === 'action' && (
+                      <div className="text-orange-600 font-bold text-xs truncate whitespace-normal">🎲</div>
+                    )}
+                    {space.type === 'question' && (
+                      <div className="text-blue-600 font-bold text-xs truncate whitespace-normal">❓</div>
                     )}
                     {propertyOwner && (
                       <div className="text-xs font-medium mt-1 truncate px-1 whitespace-normal" style={{ color: propertyOwner.color }}>
@@ -1002,6 +1067,82 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                   Owned by {players.find(p => p.id === selectedSpaceDetails.ownerId)?.name}
                 </div>
               </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Question Card Dialog */}
+      <Dialog open={isQuestionOpen} onOpenChange={setIsQuestionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Question Card</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {currentQuestionCard && (
+              <>
+                <div className="text-lg font-medium">{currentQuestionCard.question}</div>
+                <div className="space-y-2">
+                  {currentQuestionCard.options.map((option, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full text-left justify-start"
+                      onClick={() => {
+                        const isCorrect = index === currentQuestionCard.correctAnswer;
+                        const amount = isCorrect ? currentQuestionCard.reward : -currentQuestionCard.penalty;
+                        const updatedPlayers = players.map(p => 
+                          p.id === players[currentPlayer].id 
+                            ? { ...p, money: Math.max(0, p.money + amount) } 
+                            : p
+                        );
+                        onUpdatePlayers(updatedPlayers);
+                        toast({
+                          title: isCorrect ? "Correct!" : "Wrong Answer",
+                          description: isCorrect 
+                            ? `You earned $${currentQuestionCard.reward}!` 
+                            : `You lost $${currentQuestionCard.penalty}`,
+                          variant: isCorrect ? "default" : "destructive"
+                        });
+                        setIsQuestionOpen(false);
+                        setCurrentQuestionCard(null);
+                      }}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Action Card Dialog */}
+      <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Action Card</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {currentActionCard && (
+              <>
+                <div className="text-lg font-bold">{currentActionCard.title}</div>
+                <div className="text-sm text-muted-foreground">{currentActionCard.description}</div>
+                <Button
+                  onClick={() => {
+                    handleActionEffect(currentActionCard.effect, players[currentPlayer].id, currentActionCard.value);
+                    setIsActionOpen(false);
+                    setCurrentActionCard(null);
+                    if (currentActionCard.effect !== 'extra-turn') {
+                      handleEndTurn();
+                    }
+                  }}
+                  className="w-full"
+                >
+                  Continue
+                </Button>
+              </>
             )}
           </div>
         </DialogContent>

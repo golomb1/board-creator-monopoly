@@ -23,11 +23,10 @@ interface PropertyCard {
 interface BoardSpace {
   id: string;
   name: string;
-  type: 'property' | 'action' | 'corner' | 'jail';
+  type: 'property' | 'action' | 'question' | 'corner' | 'jail';
   color?: string;
   price?: number;
   rent?: number;
-  actionEffect?: 'go-to-jail' | 'skip-turn' | 'extra-turn'; // For action spaces
   svgXml?: string; // Optional inline SVG XML for board rendering
 }
 
@@ -133,9 +132,6 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
           price: newSpace.price,
           rent: newSpace.rent
         }),
-        ...(newSpace.type === 'action' && {
-          actionEffect: newSpace.actionEffect
-        })
       };
       setLocalBoardSpaces([...localBoardSpaces, space]);
       setNewSpace({ name: '', type: 'property', color: 'brown', price: 100, rent: 10 });
@@ -157,48 +153,48 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
       // Bottom row
       { id: '0', name: 'GO', type: 'corner' },
       { id: '1', name: 'Mediterranean Ave', type: 'property', color: 'brown', price: 60, rent: 2 },
-      { id: '2', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
+      { id: '2', name: 'Action Card', type: 'action' },
       { id: '3', name: 'Baltic Ave', type: 'property', color: 'brown', price: 60, rent: 4 },
-      { id: '4', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
+      { id: '4', name: 'Action Card', type: 'action' },
       { id: '5', name: 'Reading Railroad', type: 'property', price: 200, rent: 25 },
       { id: '6', name: 'Oriental Ave', type: 'property', color: 'light-blue', price: 100, rent: 6 },
-      { id: '7', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
+      { id: '7', name: 'Action Card', type: 'action' },
       { id: '8', name: 'Vermont Ave', type: 'property', color: 'light-blue', price: 100, rent: 6 },
       { id: '9', name: 'Connecticut Ave', type: 'property', color: 'light-blue', price: 120, rent: 8 },
       { id: '10', name: 'Jail', type: 'corner' },
       
       // Right side (continuing around)
       { id: '11', name: 'St. Charles Place', type: 'property', color: 'pink', price: 140, rent: 10 },
-      { id: '12', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
+      { id: '12', name: 'Question Card', type: 'question' },
       { id: '13', name: 'States Ave', type: 'property', color: 'pink', price: 140, rent: 10 },
       { id: '14', name: 'Virginia Ave', type: 'property', color: 'pink', price: 160, rent: 12 },
       { id: '15', name: 'Pennsylvania Railroad', type: 'property', price: 200, rent: 25 },
       { id: '16', name: 'St. James Place', type: 'property', color: 'orange', price: 180, rent: 14 },
-      { id: '17', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
+      { id: '17', name: 'Action Card', type: 'action' },
       { id: '18', name: 'Tennessee Ave', type: 'property', color: 'orange', price: 180, rent: 14 },
       { id: '19', name: 'New York Ave', type: 'property', color: 'orange', price: 200, rent: 16 },
       { id: '20', name: 'Free Parking', type: 'corner' },
       
       // Continue for top and left sides...
       { id: '21', name: 'Kentucky Ave', type: 'property', color: 'red', price: 220, rent: 18 },
-      { id: '22', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
+      { id: '22', name: 'Question Card', type: 'question' },
       { id: '23', name: 'Indiana Ave', type: 'property', color: 'red', price: 220, rent: 18 },
       { id: '24', name: 'Illinois Ave', type: 'property', color: 'red', price: 240, rent: 20 },
       { id: '25', name: 'B&O Railroad', type: 'property', price: 200, rent: 25 },
       { id: '26', name: 'Atlantic Ave', type: 'property', color: 'yellow', price: 260, rent: 22 },
       { id: '27', name: 'Ventnor Ave', type: 'property', color: 'yellow', price: 260, rent: 22 },
-      { id: '28', name: 'Skip Turn Action', type: 'action', actionEffect: 'skip-turn' },
+      { id: '28', name: 'Action Card', type: 'action' },
       { id: '29', name: 'Marvin Gardens', type: 'property', color: 'yellow', price: 280, rent: 24 },
       { id: '30', name: 'Go to Jail', type: 'corner' },
       
       { id: '31', name: 'Pacific Ave', type: 'property', color: 'green', price: 300, rent: 26 },
       { id: '32', name: 'North Carolina Ave', type: 'property', color: 'green', price: 300, rent: 26 },
-      { id: '33', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
+      { id: '33', name: 'Question Card', type: 'question' },
       { id: '34', name: 'Pennsylvania Ave', type: 'property', color: 'green', price: 320, rent: 28 },
       { id: '35', name: 'Short Line', type: 'property', price: 200, rent: 25 },
-      { id: '36', name: 'Extra Turn Action', type: 'action', actionEffect: 'extra-turn' },
+      { id: '36', name: 'Action Card', type: 'action' },
       { id: '37', name: 'Park Place', type: 'property', color: 'blue', price: 350, rent: 35 },
-      { id: '38', name: 'Go to Jail Action', type: 'action', actionEffect: 'go-to-jail' },
+      { id: '38', name: 'Question Card', type: 'question' },
       { id: '39', name: 'Boardwalk', type: 'property', color: 'blue', price: 400, rent: 50 },
     ];
     setLocalBoardSpaces(defaultSpaces);
@@ -510,14 +506,15 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                     <Label htmlFor="space-type">Space Type</Label>
                     <Select
                       value={newSpace.type}
-                      onValueChange={(value: 'property' | 'action' | 'corner' | 'jail') => setNewSpace({ ...newSpace, type: value })}
+                      onValueChange={(value: 'property' | 'action' | 'question' | 'corner' | 'jail') => setNewSpace({ ...newSpace, type: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="property">Property</SelectItem>
-                        <SelectItem value="action">Action</SelectItem>
+                        <SelectItem value="action">Action Card</SelectItem>
+                        <SelectItem value="question">Question Card</SelectItem>
                         <SelectItem value="corner">Corner</SelectItem>
                         <SelectItem value="jail">Jail</SelectItem>
                       </SelectContent>
@@ -570,24 +567,6 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                     </>
                   )}
                   
-                  {newSpace.type === 'action' && (
-                    <div className="col-span-2">
-                      <Label htmlFor="action-effect">Action Effect</Label>
-                      <Select
-                        value={newSpace.actionEffect}
-                        onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => setNewSpace({ ...newSpace, actionEffect: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select action effect" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="go-to-jail">Go to Jail</SelectItem>
-                          <SelectItem value="skip-turn">Skip Next Turn</SelectItem>
-                          <SelectItem value="extra-turn">Get Extra Turn</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
                 </div>
                 
                 <Button onClick={addSpace} variant="game">
@@ -702,7 +681,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                               />
                               <Select
                                 value={editingSpaceDraft?.type ?? space.type}
-                                onValueChange={(value: 'property' | 'action' | 'corner' | 'jail') => {
+                                onValueChange={(value: 'property' | 'action' | 'question' | 'corner' | 'jail') => {
                                   setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), type: value });
                                   updateSpace(space.id, { type: value });
                                 }}
@@ -712,7 +691,8 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="property">Property</SelectItem>
-                                  <SelectItem value="action">Action</SelectItem>
+                                  <SelectItem value="action">Action Card</SelectItem>
+                                  <SelectItem value="question">Question Card</SelectItem>
                                   <SelectItem value="corner">Corner</SelectItem>
                                   <SelectItem value="jail">Jail</SelectItem>
                                 </SelectContent>
@@ -753,24 +733,6 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                 </div>
                               )}
                               
-                              { (editingSpaceDraft?.type ?? space.type) === 'action' && (
-                                <Select
-                                  value={editingSpaceDraft?.actionEffect ?? space.actionEffect}
-                                  onValueChange={(value: 'go-to-jail' | 'skip-turn' | 'extra-turn') => {
-                                    setEditingSpaceDraft({ ...(editingSpaceDraft ?? space), actionEffect: value });
-                                    updateSpace(space.id, { actionEffect: value });
-                                  }}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="go-to-jail">Go to Jail</SelectItem>
-                                    <SelectItem value="skip-turn">Skip Next Turn</SelectItem>
-                                    <SelectItem value="extra-turn">Get Extra Turn</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
                               
                               <div>
                                 <Label htmlFor={`svg-${space.id}`}>SVG XML (optional)</Label>
@@ -824,9 +786,14 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                     <div>Rent: <span className="font-bold text-secondary">${space.rent}</span></div>
                                   </>
                                 )}
-                                {space.type === 'action' && space.actionEffect && (
+                                {space.type === 'action' && (
                                   <div className="text-muted-foreground">
-                                    Effect: {space.actionEffect.replace('-', ' ')}
+                                    Effect: Random action card
+                                  </div>
+                                )}
+                                {space.type === 'question' && (
+                                  <div className="text-muted-foreground">
+                                    Effect: Random question card
                                   </div>
                                 )}
                               </div>
@@ -844,7 +811,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
                                       color: space.color,
                                       price: space.price,
                                       rent: space.rent,
-                                      actionEffect: space.actionEffect,
+                                      
                                       svgXml: space.svgXml,
                                     });
                                   }}
