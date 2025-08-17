@@ -18,6 +18,22 @@ import IAMIcon from "@/assets/aws/iam.svg";
 import LambdaIcon from "@/assets/aws/lambda.svg";
 import EKSIcon from "@/assets/aws/eks.svg";
 
+// Import GCP Icons
+import GCPStorageIcon from "@/assets/gcp/cloud-storage.svg";
+import ComputeEngineIcon from "@/assets/gcp/compute-engine.svg";
+import CloudSQLIcon from "@/assets/gcp/cloud-sql.svg";
+import GCPVPCIcon from "@/assets/gcp/vpc-network.svg";
+import GKEIcon from "@/assets/gcp/gke.svg";
+import GCPSecurityIcon from "@/assets/gcp/cloud-security.svg";
+
+// Import Azure Icons
+import AzureStorageIcon from "@/assets/azure/storage-accounts.svg";
+import AzureVMIcon from "@/assets/azure/virtual-machines.svg";
+import AzureSQLIcon from "@/assets/azure/sql-database.svg";
+import AzureVNetIcon from "@/assets/azure/virtual-networks.svg";
+import AzureKeyVaultIcon from "@/assets/azure/key-vaults.svg";
+import AzureAKSIcon from "@/assets/azure/kubernetes-services.svg";
+
 interface Player {
   id: string;
   name: string;
@@ -542,7 +558,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
 
   const getServiceIcon = (spaceName: string): string => {
     const iconMap: Record<string, string> = {
-      // AWS services with actual icons (return import paths as strings)
+      // AWS services with actual icons
       'Amazon S3': S3Icon,
       'Amazon EC2': EC2Icon,
       'Amazon RDS': RDSIcon,
@@ -551,44 +567,42 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
       'AWS Lambda': LambdaIcon,
       'Amazon EKS': EKSIcon,
       
-      // Storage services (emojis for non-AWS)
-      'Azure Blob Storage': '📦',
-      'Cloud Storage': '☁️',
+      // Azure services with actual icons
+      'Azure Blob Storage': AzureStorageIcon,
+      'Azure Virtual Machines': AzureVMIcon,
+      'Azure SQL Database': AzureSQLIcon,
+      'Azure Virtual Network': AzureVNetIcon,
+      'Azure Key Vault': AzureKeyVaultIcon,
+      'Azure Kubernetes Service': AzureAKSIcon,
+      'Azure Cache': '💾', // Keep emoji for this one
+      'Azure AI Services': '🤖', // Keep emoji for this one
       
-      // Compute services (emojis for non-AWS)
-      'Azure Virtual Machines': '🖥️',
-      'Compute Engine': '🔧',
-      'Azure Cache': '💾',
+      // GCP services with actual icons
+      'Cloud Storage': GCPStorageIcon,
+      'Compute Engine': ComputeEngineIcon,
+      'Cloud SQL': CloudSQLIcon,
+      'VPC Network': GCPVPCIcon,
+      'Google Kubernetes Engine': GKEIcon,
+      'Cloud Security': GCPSecurityIcon,
+      'Google Cloud AI': '🧠', // Keep emoji for this one
       
-      // Database services (emojis for non-AWS)
-      'Azure SQL Database': '🗄️',
-      'Cloud SQL': '🎯',
-      
-      // Networking services (emojis for non-AWS)
-      'Azure Virtual Network': '🌐',
-      'VPC Network': '🌍',
+      // Networking/Infrastructure services (emojis)
       'Cloud Railroad': '🚄',
       'Edge Network': '📡',
       'Global CDN': '🌎',
       'Cloud Backbone': '🔗',
-      
-      // Security services (emojis for non-AWS)
-      'Azure Key Vault': '🔐',
-      'Cloud Security': '🛡️',
-      
-      // Container/Orchestration services (emojis for non-AWS)
-      'Azure Kubernetes Service': '🐳',
-      'Google Kubernetes Engine': '⚙️',
-      
-      // AI/ML services (emojis for non-AWS)
-      'Azure AI Services': '🤖',
-      'Google Cloud AI': '🧠',
     };
     return iconMap[spaceName] || '⚙️';
   };
 
-  const isAwsService = (spaceName: string): boolean => {
-    return spaceName.startsWith('Amazon ') || spaceName.startsWith('AWS ');
+  const isCloudService = (spaceName: string): boolean => {
+    return spaceName.startsWith('Amazon ') || 
+           spaceName.startsWith('AWS ') || 
+           spaceName.startsWith('Azure ') || 
+           spaceName.startsWith('Cloud ') ||
+           spaceName.startsWith('Compute ') ||
+           spaceName.startsWith('VPC ') ||
+           spaceName.startsWith('Google ');
   };
 
   const renderBoardSpace = (space: BoardSpace | null, row: number, col: number) => {
@@ -639,7 +653,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 ) : (
                   <>
                     {space.type === 'property' ? (
-                      isAwsService(space.name) ? (
+                      isCloudService(space.name) ? (
                         <img src={getServiceIcon(space.name)} alt={space.name} className="w-6 h-6" />
                       ) : (
                         <div className="text-lg">{getServiceIcon(space.name)}</div>
