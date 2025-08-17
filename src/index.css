@@ -31,15 +31,12 @@ All colors MUST be HSL.
     --muted: 220 15% 92%;
     --muted-foreground: 220 10% 45%;
 
-    /* Property group colors */
-    --property-brown: 25 75% 45%;
-    --property-light-blue: 195 80% 65%;
-    --property-pink: 320 70% 65%;
-    --property-orange: 30 90% 60%;
-    --property-red: 0 75% 55%;
-    --property-yellow: 55 90% 65%;
-    --property-green: 140 60% 50%;
-    --property-blue: 220 75% 55%;
+    /* Cloud Service Provider Colors */
+    --property-azure: 210 100% 50%;
+    --property-aws: 25 95% 53%;
+    --property-gcp: 4 90% 58%;
+    --property-premium: 220 91% 50%;
+    --property-luxury: 271 91% 65%;
 
     /* Game accents */
     --accent: 200 80% 65%;

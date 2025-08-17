@@ -43,14 +43,11 @@ interface GameSettingsProps {
 }
 
 const propertyColors = [
-  { value: 'brown', label: 'Brown', color: 'bg-property-brown' },
-  { value: 'light-blue', label: 'Light Blue', color: 'bg-property-light-blue' },
-  { value: 'pink', label: 'Pink', color: 'bg-property-pink' },
-  { value: 'orange', label: 'Orange', color: 'bg-property-orange' },
-  { value: 'red', label: 'Red', color: 'bg-property-red' },
-  { value: 'yellow', label: 'Yellow', color: 'bg-property-yellow' },
-  { value: 'green', label: 'Green', color: 'bg-property-green' },
-  { value: 'blue', label: 'Blue', color: 'bg-property-blue' },
+  { value: 'azure', label: 'Azure', color: 'bg-property-azure' },
+  { value: 'aws', label: 'AWS', color: 'bg-property-aws' },
+  { value: 'gcp', label: 'GCP', color: 'bg-property-gcp' },
+  { value: 'premium', label: 'Premium', color: 'bg-property-premium' },
+  { value: 'luxury', label: 'Luxury', color: 'bg-property-luxury' },
 ];
 
 const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSaveBoardSpaces, gameTitle, onSaveGameTitle, numberOfPlayers, onSaveNumberOfPlayers }: GameSettingsProps) => {
@@ -68,7 +65,7 @@ const GameSettings = ({ onBack, properties, boardSpaces, onSaveProperties, onSav
   const [newSpace, setNewSpace] = useState<Partial<BoardSpace>>({
     name: '',
     type: 'property',
-    color: 'brown',
+    color: 'azure',
     price: 100,
     rent: 10
   });

@@ -522,16 +522,58 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
 
   const getPropertyColor = (space: BoardSpace) => {
     const colorMap: Record<string, string> = {
-      brown: 'bg-property-brown',
-      'light-blue': 'bg-property-light-blue',
-      pink: 'bg-property-pink',
-      orange: 'bg-property-orange',
-      red: 'bg-property-red',
-      yellow: 'bg-property-yellow',
-      green: 'bg-property-green',
-      blue: 'bg-property-blue',
+      azure: 'bg-property-azure',
+      aws: 'bg-property-aws',
+      gcp: 'bg-property-gcp',
+      premium: 'bg-property-premium',
+      luxury: 'bg-property-luxury',
     };
     return colorMap[space.color || ''] || 'bg-muted';
+  };
+
+  const getServiceIcon = (spaceName: string) => {
+    const iconMap: Record<string, string> = {
+      // Storage services
+      'Azure Blob Storage': '📦',
+      'Amazon S3': '🪣',
+      'Cloud Storage': '☁️',
+      
+      // Compute services
+      'Azure Virtual Machines': '🖥️',
+      'Amazon EC2': '⚡',
+      'Compute Engine': '🔧',
+      'AWS Lambda': '⚡',
+      'Azure Cache': '💾',
+      
+      // Database services
+      'Azure SQL Database': '🗄️',
+      'Amazon RDS': '📊',
+      'Cloud SQL': '🎯',
+      
+      // Networking services
+      'Azure Virtual Network': '🌐',
+      'Amazon VPC': '🔗',
+      'VPC Network': '🌍',
+      'Cloud Railroad': '🚄',
+      'Edge Network': '📡',
+      'Global CDN': '🌎',
+      'Cloud Backbone': '🔗',
+      
+      // Security services
+      'Azure Key Vault': '🔐',
+      'AWS IAM': '🛡️',
+      'Cloud Security': '🛡️',
+      
+      // Container/Orchestration services
+      'Azure Kubernetes Service': '🐳',
+      'Amazon EKS': '☸️',
+      'Google Kubernetes Engine': '⚙️',
+      
+      // AI/ML services
+      'Azure AI Services': '🤖',
+      'Google Cloud AI': '🧠',
+    };
+    return iconMap[spaceName] || '⚙️';
   };
 
   const renderBoardSpace = (space: BoardSpace | null, row: number, col: number) => {
@@ -581,8 +623,12 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                   </>
                 ) : (
                   <>
-                    <div className="font-medium text-xs truncate px-1 whitespace-normal">{space.name}</div>
-                    {space.price && (
+                    {space.type === 'property' ? (
+                      <div className="text-lg">{getServiceIcon(space.name)}</div>
+                    ) : (
+                      <div className="font-medium text-xs truncate px-1 whitespace-normal text-center">{space.name}</div>
+                    )}
+                    {space.price && space.type === 'property' && (
                       <div className="text-primary font-bold text-xs truncate whitespace-normal">${space.price}</div>
                     )}
                     {space.type === 'action' && (

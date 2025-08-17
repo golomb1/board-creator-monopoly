@@ -57,14 +57,11 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				property: {
-					brown: 'hsl(var(--property-brown))',
-					'light-blue': 'hsl(var(--property-light-blue))',
-					pink: 'hsl(var(--property-pink))',
-					orange: 'hsl(var(--property-orange))',
-					red: 'hsl(var(--property-red))',
-					yellow: 'hsl(var(--property-yellow))',
-					green: 'hsl(var(--property-green))',
-					blue: 'hsl(var(--property-blue))'
+					azure: 'hsl(var(--property-azure))',
+					aws: 'hsl(var(--property-aws))',
+					gcp: 'hsl(var(--property-gcp))',
+					premium: 'hsl(var(--property-premium))',
+					luxury: 'hsl(var(--property-luxury))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
