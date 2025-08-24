@@ -97,11 +97,13 @@ interface GameBoardProps {
   questionCards: QuestionCard[];
   actionCards: ActionCard[];
   getRandomCard: <T>(cards: T[]) => T;
+  onActionCardExecuted: (actionCard: ActionCard, playerId: string) => void;
+  onQuestionAnswered: (questionCard: QuestionCard, selectedAnswer: number, playerId: string) => void;
 }
 
 type TurnPhase = 'roll' | 'actions' | 'ended';
 
-const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests, gameTitle, questionCards, actionCards, getRandomCard }: GameBoardProps) => {
+const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDice, onOpenSettings, onUpdatePlayers, onNextPlayer, onUpdateBoardSpaces, onUpdateBuyRequests, gameTitle, questionCards, actionCards, getRandomCard, onActionCardExecuted, onQuestionAnswered }: GameBoardProps) => {
   const [lastRoll, setLastRoll] = useState<{total: number, dice1: number, dice2: number} | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [animatingPlayers, setAnimatingPlayers] = useState<string[]>([]);
@@ -1166,21 +1168,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                       variant="outline"
                       className="w-full text-left justify-start"
                       onClick={() => {
-                        const isCorrect = index === currentQuestionCard.correctAnswer;
-                        const amount = isCorrect ? currentQuestionCard.reward : -currentQuestionCard.penalty;
-                        const updatedPlayers = players.map(p => 
-                          p.id === players[currentPlayer].id 
-                            ? { ...p, money: Math.max(0, p.money + amount) } 
-                            : p
-                        );
-                        onUpdatePlayers(updatedPlayers);
-                        toast({
-                          title: isCorrect ? "Correct!" : "Wrong Answer",
-                          description: isCorrect 
-                            ? `You earned $${currentQuestionCard.reward}!` 
-                            : `You lost $${currentQuestionCard.penalty}`,
-                          variant: isCorrect ? "default" : "destructive"
-                        });
+                        onQuestionAnswered(currentQuestionCard, index, players[currentPlayer].id);
                         setIsQuestionOpen(false);
                         setCurrentQuestionCard(null);
                       }}
@@ -1208,7 +1196,7 @@ const GameBoard = ({ players, boardSpaces, currentPlayer, buyRequests, onRollDic
                 <div className="text-sm text-muted-foreground">{currentActionCard.description}</div>
                 <Button
                   onClick={() => {
-                    handleActionEffect(currentActionCard.effect, players[currentPlayer].id, currentActionCard.value);
+                    onActionCardExecuted(currentActionCard, players[currentPlayer].id);
                     setIsActionOpen(false);
                     setCurrentActionCard(null);
                     if (currentActionCard.effect !== 'extra-turn') {

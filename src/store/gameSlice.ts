@@ -345,7 +345,17 @@ const gameSlice = createSlice({
       state.currentPlayer = 0;
       state.buyRequests = [];
       state.gameInProgress = false;
+      // Clear board space ownership
+      state.settings.boardSpaces = state.settings.boardSpaces.map(space => ({
+        ...space,
+        ownerId: undefined
+      }));
       localStorage.removeItem('monopoly-game-state');
+    },
+
+    endGame: (state, action: PayloadAction<{ winner: Player }>) => {
+      state.gameInProgress = false;
+      saveGameStateToStorage(state);
     },
 
     startGame: (state) => {
@@ -369,6 +379,7 @@ export const {
   updateBoardSpaces,
   resetGame,
   startGame,
+  endGame,
 } = gameSlice.actions;
 
 export default gameSlice.reducer;
