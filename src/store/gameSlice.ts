@@ -37,6 +37,7 @@ export interface QuestionCard {
   correctAnswer: number;
   reward: number;
   penalty: number;
+  image?: string; // Optional image URL or path
 }
 
 export interface ActionCard {
@@ -45,6 +46,7 @@ export interface ActionCard {
   description: string;
   effect: 'go-to-jail' | 'skip-turn' | 'extra-turn' | 'collect-money' | 'pay-money' | 'advance-spaces';
   value?: number;
+  image?: string; // Optional image URL or path
 }
 
 export interface BoardSpace {
