@@ -1,4 +1,4 @@
-import { ActionCard, Player, BoardSpace } from '../store/gameSlice';
+import { ActionCard, Player, BoardSpace } from '../contexts/GameContext';
 
 export interface ActionFunction {
   (player: Player, boardSpaces: BoardSpace[], value?: number): {

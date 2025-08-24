@@ -1,4 +1,4 @@
-import { Player, BoardSpace, ActionCard, QuestionCard } from '../store/gameSlice';
+import { Player, BoardSpace, ActionCard, QuestionCard } from '../contexts/GameContext';
 import { executeActionCard } from './actionCards';
 
 export interface GameEngineResult {

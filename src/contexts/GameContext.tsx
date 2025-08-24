@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 
 export interface Player {
   id: string;
@@ -37,7 +37,7 @@ export interface QuestionCard {
   correctAnswer: number;
   reward: number;
   penalty: number;
-  image?: string; // Optional image URL or path
+  image?: string;
 }
 
 export interface ActionCard {
@@ -46,7 +46,7 @@ export interface ActionCard {
   description: string;
   effect: 'go-to-jail' | 'skip-turn' | 'extra-turn' | 'collect-money' | 'pay-money' | 'advance-spaces';
   value?: number;
-  image?: string; // Optional image URL or path
+  image?: string;
 }
 
 export interface BoardSpace {
@@ -77,6 +77,22 @@ export interface GameState {
   settings: GameSettings;
   gameInProgress: boolean;
 }
+
+type GameAction =
+  | { type: 'MOVE_PLAYER'; payload: { playerId: string; steps: number } }
+  | { type: 'UPDATE_PLAYER_MONEY'; payload: { playerId: string; amount: number } }
+  | { type: 'SET_PLAYER_SKIP_TURN'; payload: { playerId: string; skip: boolean } }
+  | { type: 'ADD_PROPERTY_TO_PLAYER'; payload: { playerId: string; propertyId: string } }
+  | { type: 'REMOVE_PROPERTY_FROM_PLAYER'; payload: { playerId: string; propertyId: string } }
+  | { type: 'NEXT_PLAYER' }
+  | { type: 'SET_CURRENT_VIEW'; payload: 'game' | 'settings' }
+  | { type: 'UPDATE_SETTINGS'; payload: Partial<GameSettings> }
+  | { type: 'UPDATE_PLAYERS'; payload: Player[] }
+  | { type: 'UPDATE_BUY_REQUESTS'; payload: BuyRequest[] }
+  | { type: 'UPDATE_BOARD_SPACES'; payload: BoardSpace[] }
+  | { type: 'RESET_GAME' }
+  | { type: 'START_GAME' }
+  | { type: 'END_GAME'; payload: { winner: Player } };
 
 const initialSettings: GameSettings = {
   gameTitle: 'Custom Monopoly',
@@ -223,15 +239,6 @@ const generatePlayers = (count: number): Player[] => {
   return players;
 };
 
-const initialState: GameState = {
-  players: generatePlayers(4),
-  currentPlayer: 0,
-  buyRequests: [],
-  currentView: 'game',
-  settings: initialSettings,
-  gameInProgress: false,
-};
-
 // Load game state from localStorage
 const loadGameStateFromStorage = (): Partial<GameState> => {
   try {
@@ -258,128 +265,198 @@ const saveGameStateToStorage = (state: GameState) => {
   }
 };
 
-const gameSlice = createSlice({
-  name: 'game',
-  initialState: { ...initialState, ...loadGameStateFromStorage() },
-  reducers: {
-    movePlayer: (state, action: PayloadAction<{ playerId: string; steps: number }>) => {
+const initialState: GameState = {
+  players: generatePlayers(4),
+  currentPlayer: 0,
+  buyRequests: [],
+  currentView: 'game',
+  settings: initialSettings,
+  gameInProgress: false,
+  ...loadGameStateFromStorage(),
+};
+
+const gameReducer = (state: GameState, action: GameAction): GameState => {
+  let newState: GameState;
+
+  switch (action.type) {
+    case 'MOVE_PLAYER':
       const { playerId, steps } = action.payload;
       const player = state.players.find(p => p.id === playerId);
       if (player) {
-        player.position = (player.position + steps) % 40;
+        newState = {
+          ...state,
+          players: state.players.map(p => 
+            p.id === playerId 
+              ? { ...p, position: (p.position + steps) % 40 }
+              : p
+          ),
+        };
+        saveGameStateToStorage(newState);
+        return newState;
       }
-      saveGameStateToStorage(state);
-    },
+      return state;
 
-    updatePlayerMoney: (state, action: PayloadAction<{ playerId: string; amount: number }>) => {
-      const { playerId, amount } = action.payload;
-      const player = state.players.find(p => p.id === playerId);
-      if (player) {
-        player.money = Math.max(0, player.money + amount);
-      }
-      saveGameStateToStorage(state);
-    },
+    case 'UPDATE_PLAYER_MONEY':
+      newState = {
+        ...state,
+        players: state.players.map(p => 
+          p.id === action.payload.playerId 
+            ? { ...p, money: Math.max(0, p.money + action.payload.amount) }
+            : p
+        ),
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    setPlayerSkipTurn: (state, action: PayloadAction<{ playerId: string; skip: boolean }>) => {
-      const { playerId, skip } = action.payload;
-      const player = state.players.find(p => p.id === playerId);
-      if (player) {
-        player.skipNextTurn = skip;
-      }
-      saveGameStateToStorage(state);
-    },
+    case 'SET_PLAYER_SKIP_TURN':
+      newState = {
+        ...state,
+        players: state.players.map(p => 
+          p.id === action.payload.playerId 
+            ? { ...p, skipNextTurn: action.payload.skip }
+            : p
+        ),
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    addPropertyToPlayer: (state, action: PayloadAction<{ playerId: string; propertyId: string }>) => {
-      const { playerId, propertyId } = action.payload;
-      const player = state.players.find(p => p.id === playerId);
-      if (player && !player.properties.includes(propertyId)) {
-        player.properties.push(propertyId);
-      }
-      saveGameStateToStorage(state);
-    },
+    case 'ADD_PROPERTY_TO_PLAYER':
+      newState = {
+        ...state,
+        players: state.players.map(p => 
+          p.id === action.payload.playerId && !p.properties.includes(action.payload.propertyId)
+            ? { ...p, properties: [...p.properties, action.payload.propertyId] }
+            : p
+        ),
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    removePropertyFromPlayer: (state, action: PayloadAction<{ playerId: string; propertyId: string }>) => {
-      const { playerId, propertyId } = action.payload;
-      const player = state.players.find(p => p.id === playerId);
-      if (player) {
-        player.properties = player.properties.filter(id => id !== propertyId);
-      }
-      saveGameStateToStorage(state);
-    },
+    case 'REMOVE_PROPERTY_FROM_PLAYER':
+      newState = {
+        ...state,
+        players: state.players.map(p => 
+          p.id === action.payload.playerId 
+            ? { ...p, properties: p.properties.filter(id => id !== action.payload.propertyId) }
+            : p
+        ),
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    nextPlayer: (state) => {
+    case 'NEXT_PLAYER':
       const currentPlayerData = state.players[state.currentPlayer];
-      
-      if (currentPlayerData?.skipNextTurn) {
-        currentPlayerData.skipNextTurn = false;
-      }
-      
-      state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
-      saveGameStateToStorage(state);
-    },
+      const updatedPlayers = currentPlayerData?.skipNextTurn 
+        ? state.players.map((p, index) => 
+            index === state.currentPlayer ? { ...p, skipNextTurn: false } : p
+          )
+        : state.players;
 
-    setCurrentView: (state, action: PayloadAction<'game' | 'settings'>) => {
-      state.currentView = action.payload;
-    },
+      newState = {
+        ...state,
+        players: updatedPlayers,
+        currentPlayer: (state.currentPlayer + 1) % state.players.length,
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    updateSettings: (state, action: PayloadAction<Partial<GameSettings>>) => {
-      state.settings = { ...state.settings, ...action.payload };
-    },
+    case 'SET_CURRENT_VIEW':
+      return {
+        ...state,
+        currentView: action.payload,
+      };
 
-    updatePlayers: (state, action: PayloadAction<Player[]>) => {
-      state.players = action.payload;
-      saveGameStateToStorage(state);
-    },
+    case 'UPDATE_SETTINGS':
+      return {
+        ...state,
+        settings: { ...state.settings, ...action.payload },
+      };
 
-    updateBuyRequests: (state, action: PayloadAction<BuyRequest[]>) => {
-      state.buyRequests = action.payload;
-      saveGameStateToStorage(state);
-    },
+    case 'UPDATE_PLAYERS':
+      newState = {
+        ...state,
+        players: action.payload,
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    updateBoardSpaces: (state, action: PayloadAction<BoardSpace[]>) => {
-      state.settings.boardSpaces = action.payload;
-    },
+    case 'UPDATE_BUY_REQUESTS':
+      newState = {
+        ...state,
+        buyRequests: action.payload,
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    resetGame: (state) => {
-      state.players = generatePlayers(state.settings.numberOfPlayers);
-      state.currentPlayer = 0;
-      state.buyRequests = [];
-      state.gameInProgress = false;
-      // Clear board space ownership
-      state.settings.boardSpaces = state.settings.boardSpaces.map(space => ({
-        ...space,
-        ownerId: undefined
-      }));
+    case 'UPDATE_BOARD_SPACES':
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          boardSpaces: action.payload,
+        },
+      };
+
+    case 'RESET_GAME':
+      const resetState = {
+        ...state,
+        players: generatePlayers(state.settings.numberOfPlayers),
+        currentPlayer: 0,
+        buyRequests: [],
+        gameInProgress: false,
+        settings: {
+          ...state.settings,
+          boardSpaces: state.settings.boardSpaces.map(space => ({
+            ...space,
+            ownerId: undefined,
+          })),
+        },
+      };
       localStorage.removeItem('monopoly-game-state');
-    },
+      return resetState;
 
-    endGame: (state, action: PayloadAction<{ winner: Player }>) => {
-      state.gameInProgress = false;
-      saveGameStateToStorage(state);
-    },
+    case 'START_GAME':
+      newState = {
+        ...state,
+        gameInProgress: true,
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-    startGame: (state) => {
-      state.gameInProgress = true;
-      saveGameStateToStorage(state);
-    },
-  },
-});
+    case 'END_GAME':
+      newState = {
+        ...state,
+        gameInProgress: false,
+      };
+      saveGameStateToStorage(newState);
+      return newState;
 
-export const {
-  movePlayer,
-  updatePlayerMoney,
-  setPlayerSkipTurn,
-  addPropertyToPlayer,
-  removePropertyFromPlayer,
-  nextPlayer,
-  setCurrentView,
-  updateSettings,
-  updatePlayers,
-  updateBuyRequests,
-  updateBoardSpaces,
-  resetGame,
-  startGame,
-  endGame,
-} = gameSlice.actions;
+    default:
+      return state;
+  }
+};
 
-export default gameSlice.reducer;
+interface GameContextType {
+  state: GameState;
+  dispatch: React.Dispatch<GameAction>;
+}
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+export const GameProvider = ({ children }: { children: ReactNode }) => {
+  const [state, dispatch] = useReducer(gameReducer, initialState);
+
+  return (
+    <GameContext.Provider value={{ state, dispatch }}>
+      {children}
+    </GameContext.Provider>
+  );
+};
+
+export const useGame = () => {
+  const context = useContext(GameContext);
+  if (context === undefined) {
+    throw new Error('useGame must be used within a GameProvider');
+  }
+  return context;
+};

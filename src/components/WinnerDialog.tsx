@@ -1,4 +1,4 @@
-import { Player } from "@/store/gameSlice";
+import { Player } from "@/contexts/GameContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trophy, Crown, Star } from "lucide-react";

@@ -1,19 +1,7 @@
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { 
-  movePlayer, 
-  updatePlayerMoney, 
-  nextPlayer, 
-  setCurrentView,
-  updateSettings,
-  updatePlayers,
-  updateBuyRequests,
-  updateBoardSpaces,
-  startGame,
-  endGame,
-  resetGame,
-  Player,
-} from "@/store/gameSlice";
+import { useGame } from "@/contexts/GameContext";
+import { useGameActions } from "@/hooks/useGameActions";
+import type { Player } from "@/contexts/GameContext";
 import { gameEngine } from "@/utils/gameEngine";
 import { executeActionCard } from "@/utils/actionCards";
 import GameBoard from "@/components/GameBoard";
@@ -21,7 +9,21 @@ import GameSettings from "@/components/GameSettings";
 import WinnerDialog from "@/components/WinnerDialog";
 
 const Index = () => {
-  const dispatch = useAppDispatch();
+  const { state } = useGame();
+  const {
+    movePlayer,
+    updatePlayerMoney,
+    nextPlayer,
+    setCurrentView,
+    updateSettings,
+    updatePlayers,
+    updateBuyRequests,
+    updateBoardSpaces,
+    startGame,
+    endGame,
+    resetGame,
+  } = useGameActions();
+
   const {
     players,
     currentPlayer,
@@ -29,7 +31,7 @@ const Index = () => {
     currentView,
     settings,
     gameInProgress
-  } = useAppSelector(state => state.game);
+  } = state;
 
   const [winner, setWinner] = useState<Player | null>(null);
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
@@ -55,22 +57,16 @@ const Index = () => {
       updatedPlayer = gameEngine.handlePassingGO(updatedPlayer);
     }
     
-    dispatch(movePlayer({ 
-      playerId: players[currentPlayer].id, 
-      steps: total 
-    }));
+    movePlayer(players[currentPlayer].id, total);
 
     // Update player money if they passed GO
     if (updatedPlayer.money > currentPlayerData.money) {
-      dispatch(updatePlayerMoney({
-        playerId: currentPlayerData.id,
-        amount: 200
-      }));
+      updatePlayerMoney(currentPlayerData.id, 200);
     }
 
     // Start the game if not already started
     if (!gameInProgress) {
-      dispatch(startGame());
+      startGame();
     }
 
     // Check for win conditions after movement
@@ -78,30 +74,30 @@ const Index = () => {
   };
 
   const handleSaveProperties = (newProperties: any[]) => {
-    dispatch(updateSettings({ properties: newProperties }));
+    updateSettings({ properties: newProperties });
     console.log('Properties saved:', newProperties.length);
   };
 
   const handleSaveBoardSpaces = (newSpaces: any[]) => {
-    dispatch(updateBoardSpaces(newSpaces));
+    updateBoardSpaces(newSpaces);
     console.log('Board spaces saved:', newSpaces.length);
   };
 
   const handleSaveNumberOfPlayers = (count: number) => {
-    dispatch(updateSettings({ numberOfPlayers: count }));
+    updateSettings({ numberOfPlayers: count });
     console.log('Number of players updated:', count);
   };
 
   const handleNextPlayer = () => {
-    dispatch(nextPlayer());
+    nextPlayer();
   };
 
   const handleUpdateBoardSpaces = (newSpaces: any[]) => {
-    dispatch(updateBoardSpaces(newSpaces));
+    updateBoardSpaces(newSpaces);
   };
 
   const handleSaveGameTitle = (title: string) => {
-    dispatch(updateSettings({ gameTitle: title }));
+    updateSettings({ gameTitle: title });
   };
 
   const checkWinConditions = () => {
@@ -110,14 +106,14 @@ const Index = () => {
     if (gameStatus.gameEnded && gameStatus.winner) {
       setWinner(gameStatus.winner);
       setShowWinnerDialog(true);
-      dispatch(endGame({ winner: gameStatus.winner }));
+      endGame(gameStatus.winner);
     }
   };
 
   const handleNewGame = () => {
     setWinner(null);
     setShowWinnerDialog(false);
-    dispatch(resetGame());
+    resetGame();
   };
 
   const handleViewBoard = () => {
@@ -134,16 +130,16 @@ const Index = () => {
     const updatedPlayers = players.map(p => 
       p.id === playerId ? result.updatedPlayer : p
     );
-    dispatch(updatePlayers(updatedPlayers));
+    updatePlayers(updatedPlayers);
     
     // Update board spaces if changed
-    dispatch(updateBoardSpaces(result.updatedBoardSpaces));
+    updateBoardSpaces(result.updatedBoardSpaces);
     
     // Check for win conditions
     if (result.shouldEndGame && result.winner) {
       setWinner(result.winner);
       setShowWinnerDialog(true);
-      dispatch(endGame({ winner: result.winner }));
+      endGame(result.winner);
     }
   };
 
@@ -157,20 +153,20 @@ const Index = () => {
     const updatedPlayers = players.map(p => 
       p.id === playerId ? result.updatedPlayer : p
     );
-    dispatch(updatePlayers(updatedPlayers));
+    updatePlayers(updatedPlayers);
     
     // Check for win conditions
     if (result.shouldEndGame && result.winner) {
       setWinner(result.winner);
       setShowWinnerDialog(true);
-      dispatch(endGame({ winner: result.winner }));
+      endGame(result.winner);
     }
   };
 
   if (currentView === 'settings') {
     return (
       <GameSettings
-        onBack={() => dispatch(setCurrentView('game'))}
+        onBack={() => setCurrentView('game')}
         properties={settings.properties}
         boardSpaces={settings.boardSpaces}
         onSaveProperties={handleSaveProperties}
@@ -191,11 +187,11 @@ const Index = () => {
         currentPlayer={currentPlayer}
         buyRequests={buyRequests}
         onRollDice={handleRollDice}
-        onOpenSettings={() => dispatch(setCurrentView('settings'))}
-        onUpdatePlayers={(newPlayers) => dispatch(updatePlayers(newPlayers))}
+        onOpenSettings={() => setCurrentView('settings')}
+        onUpdatePlayers={(newPlayers) => updatePlayers(newPlayers)}
         onNextPlayer={handleNextPlayer}
         onUpdateBoardSpaces={handleUpdateBoardSpaces}
-        onUpdateBuyRequests={(newRequests) => dispatch(updateBuyRequests(newRequests))}
+        onUpdateBuyRequests={(newRequests) => updateBuyRequests(newRequests)}
         gameTitle={settings.gameTitle}
         questionCards={settings.questionCards}
         actionCards={settings.actionCards}
